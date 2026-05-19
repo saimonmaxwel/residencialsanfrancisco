@@ -333,14 +333,19 @@ function applyScrollbar() {
     el.id = 'condo-scrollbar-style';
     document.head.appendChild(el);
   }
-  const w = sb.width + 'px';
-  const r = (sb.radius || '0') + 'px';
+  const w  = sb.width + 'px';
+  const r  = (sb.radius || '0') + 'px';
+  const tr = sb.trackColor      || 'transparent';
+  const th = sb.thumbColor      || '#888';
+  const hv = sb.thumbHoverColor || '#555';
+  const overlayRule = sb.overlay ? 'html,body{overflow-y:overlay}' : '';
   el.textContent =
     `::-webkit-scrollbar{width:${w}}` +
-    `::-webkit-scrollbar-track{background:${sb.trackColor||'#f1f1f1'}}` +
-    `::-webkit-scrollbar-thumb{background:${sb.thumbColor||'#888'};border-radius:${r}}` +
-    `::-webkit-scrollbar-thumb:hover{background:${sb.thumbHoverColor||'#555'}}` +
-    `*{scrollbar-width:auto;scrollbar-color:${sb.thumbColor||'#888'} ${sb.trackColor||'#f1f1f1'}}`;
+    `::-webkit-scrollbar-track{background:${tr}}` +
+    `::-webkit-scrollbar-thumb{background:${th};border-radius:${r}}` +
+    `::-webkit-scrollbar-thumb:hover{background:${hv}}` +
+    `*{scrollbar-color:${th} ${tr}}` +
+    overlayRule;
 }
 applyScrollbar();
 

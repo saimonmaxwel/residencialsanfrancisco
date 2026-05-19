@@ -146,6 +146,18 @@
                        style="width:100%;accent-color:var(--primary)"
                        oninput="document.getElementById('sbRadiusVal').textContent=this.value;previewScrollbar()">
               </div>
+              <div class="form-group" style="margin:0;grid-column:1/-1">
+                <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;user-select:none">
+                  <input type="checkbox" id="sbOverlay" onchange="previewScrollbar()"
+                         style="width:1.1rem;height:1.1rem;accent-color:var(--primary);cursor:pointer">
+                  <span>
+                    <strong>Scrollbar flutuante</strong> — flutua sobre o conteúdo sem ocupar espaço na página
+                    <span style="font-size:.75rem;color:#94a3b8;display:block">
+                      Recomendado: ative e deixe o trilho transparente
+                    </span>
+                  </span>
+                </label>
+              </div>
               <div class="form-group" style="margin:0">
                 <label for="sbTrack">Cor do trilho</label>
                 <div style="display:flex;align-items:center;gap:.5rem">
@@ -436,12 +448,13 @@
     document.getElementById('sbWidthVal').textContent = w;
     document.getElementById('sbRadius').value     = r;
     document.getElementById('sbRadiusVal').textContent = r;
-    document.getElementById('sbTrack').value      = tr;
-    document.getElementById('sbTrackHex').value   = tr;
-    document.getElementById('sbThumb').value      = th;
-    document.getElementById('sbThumbHex').value   = th;
-    document.getElementById('sbHover').value      = hv;
-    document.getElementById('sbHoverHex').value   = hv;
+    document.getElementById('sbTrack').value        = tr === 'transparent' ? '#ffffff' : tr;
+    document.getElementById('sbTrackHex').value     = tr;
+    document.getElementById('sbThumb').value        = th;
+    document.getElementById('sbThumbHex').value     = th;
+    document.getElementById('sbHover').value        = hv;
+    document.getElementById('sbHoverHex').value     = hv;
+    document.getElementById('sbOverlay').checked    = sb.overlay !== false;
     previewScrollbar();
   }
 
@@ -464,12 +477,14 @@
   }
 
   function getScrollbarValues() {
+    const trackHex = document.getElementById('sbTrackHex').value.trim();
     return {
       width:           document.getElementById('sbWidth').value,
-      trackColor:      document.getElementById('sbTrack').value,
+      trackColor:      trackHex || document.getElementById('sbTrack').value,
       thumbColor:      document.getElementById('sbThumb').value,
       thumbHoverColor: document.getElementById('sbHover').value,
-      radius:          document.getElementById('sbRadius').value
+      radius:          document.getElementById('sbRadius').value,
+      overlay:         document.getElementById('sbOverlay').checked
     };
   }
 

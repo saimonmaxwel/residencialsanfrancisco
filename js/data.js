@@ -20,10 +20,11 @@ const DEFAULTS = {
     heroBg:          '',
     scrollbar: {
       width:          '8',
-      trackColor:     '#f1f1f1',
+      trackColor:     'transparent',
       thumbColor:     '#94a3b8',
       thumbHoverColor:'#64748b',
-      radius:         '6'
+      radius:         '6',
+      overlay:        true
     }
   },
 
