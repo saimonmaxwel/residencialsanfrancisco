@@ -1186,7 +1186,6 @@ main > .section { flex: 1; }
     .filter-btn { font-size: .75rem; padding: .35rem .75rem; }
     .rule-body  { padding-left: 1.25rem; }
     .rule-title { white-space: normal; }
-    .rules-grid.view-cards { grid-template-columns: repeat(2, 1fr); }
 
     .waste-grid   { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1195,10 +1194,40 @@ main > .section { flex: 1; }
     .back-to-top  { bottom: 1rem; right: 1rem; }
 }
 
+/* Mobile — regras em lista independente do modo escolhido */
+@media (max-width: 640px) {
+    .rules-grid.view-cards {
+        display: flex;
+        flex-direction: column;
+        gap: .7rem;
+    }
+
+    /* Grade vira lista acordeão */
+    .rules-grid.view-grade {
+        display: flex;
+        flex-direction: column;
+        gap: .7rem;
+    }
+    .rules-grid.view-grade .rule-card        { cursor: pointer; }
+    .rules-grid.view-grade .rule-toggle-icon { display: flex; }
+    .rules-grid.view-grade .rule-body        { display: none; }
+    .rules-grid.view-grade .rule-card.open .rule-body { display: block; }
+    .rules-grid.view-grade .rule-header {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+        padding: .85rem 1rem;
+        gap: .75rem;
+        cursor: pointer;
+    }
+    .rules-grid.view-grade .rule-header-left { flex-direction: row; align-items: center; gap: .75rem; }
+    .rules-grid.view-grade .rule-icon        { font-size: 1.5rem; }
+    .rules-grid.view-grade .rule-title       { font-size: .9rem; text-align: left; }
+}
+
 /* Mobile pequeno */
 @media (max-width: 400px) {
     .quick-cards  { grid-template-columns: repeat(2, 1fr); }
     .gallery-grid { grid-template-columns: 1fr; }
     .footer-grid  { grid-template-columns: 1fr; }
-    .rules-grid.view-cards { grid-template-columns: 1fr; }
 }
