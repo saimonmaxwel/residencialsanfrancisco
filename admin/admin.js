@@ -118,6 +118,41 @@ function injectBackToSite() {
   }
 }
 
+/* ── Upload de imagem para o GitHub ───────────────────────────
+   Requer configuração em Configurações → GitHub.
+   Retorna a URL pública (raw.githubusercontent.com) ou null.
+   ──────────────────────────────────────────────────────────── */
+async function uploadToGitHub(file, base64Data) {
+  let cfg;
+  try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) { return null; }
+  if (!cfg.token || !cfg.owner || !cfg.repo) return null;
+
+  const ext      = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const path     = `img/uploads/${filename}`;
+  const branch   = cfg.branch || 'main';
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`,
+      {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${cfg.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Galeria: upload ${filename}`, branch, content: base64Data })
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.warn('GitHub upload erro:', res.status, err.message || '');
+      return null;
+    }
+    return `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${branch}/${path}`;
+  } catch(e) {
+    console.warn('GitHub upload falhou:', e);
+    return null;
+  }
+}
+
 /* ── Inicialização automática ─────────────────────────────────
    ──────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {

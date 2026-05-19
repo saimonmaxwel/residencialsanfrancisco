@@ -297,46 +297,59 @@
     if (file) processFile(file);
   }
 
-  /* ── Converte o arquivo para base64 e preenche o formulário ── */
-  function processFile(file) {
+  /* ── Processa o arquivo: tenta GitHub, cai em base64 local ── */
+  async function processFile(file) {
     if (!file.type.startsWith('image/')) {
       toast('Selecione um arquivo de imagem (JPG, PNG, etc.).', 'error');
       return;
     }
 
+    const sizeKB = Math.round(file.size / 1024);
+    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+
     const reader = new FileReader();
-    reader.onload = function(e) {
-      const base64 = e.target.result;
-      const sizeKB = Math.round(file.size / 1024);
-      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+    reader.onload = async function(e) {
+      const dataUrl    = e.target.result;
+      const base64Data = dataUrl.split(',')[1]; // sem o prefixo data:...;base64,
 
-      /* Preenche o campo src com o base64 */
-      document.getElementById('fSrc').value = base64;
-
-      /* Auto-preenche o alt com o nome do arquivo (sem extensão) */
+      /* Auto-preenche alt */
       if (!document.getElementById('fAlt').value) {
         const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
         document.getElementById('fAlt').value = name.charAt(0).toUpperCase() + name.slice(1);
       }
 
-      /* Exibe preview */
-      document.getElementById('previewImg').src  = base64;
+      /* Preview imediato com a imagem local */
+      document.getElementById('previewImg').src = dataUrl;
       document.getElementById('previewName').textContent = file.name;
       document.getElementById('previewSize').textContent =
         `Tamanho: ${sizeKB < 1024 ? sizeKB + ' KB' : sizeMB + ' MB'}`;
-
-      /* Aviso se o arquivo for grande */
       const warnEl = document.getElementById('previewWarn');
-      if (file.size > 800 * 1024) {
-        warnEl.style.display = '';
-        warnEl.textContent   =
-          `⚠️ Imagem grande (${sizeMB} MB). Recomendamos fotos abaixo de 800 KB ` +
-          `para não esgotar o espaço do localStorage. Considere comprimir antes de enviar.`;
-      } else {
-        warnEl.style.display = 'none';
-      }
-
+      warnEl.style.cssText = 'display:;background:#fef3c7;color:#b45309';
+      warnEl.textContent   = '⏳ Enviando para o GitHub…';
       document.getElementById('uploadPreview').classList.add('show');
+      document.getElementById('fSrc').value = '';
+
+      /* Tenta upload para o GitHub */
+      const githubUrl = await uploadToGitHub(file, base64Data);
+
+      if (githubUrl) {
+        document.getElementById('fSrc').value   = githubUrl;
+        document.getElementById('previewImg').src = githubUrl;
+        warnEl.style.cssText = 'display:;background:#dcfce7;color:#166534';
+        warnEl.textContent   = '☁️ Enviada para o GitHub! Visível em todos os dispositivos.';
+      } else {
+        /* Fallback: armazena base64 localmente */
+        document.getElementById('fSrc').value = dataUrl;
+        let cfg = {};
+        try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) {}
+        const ghConfigured = cfg.token && cfg.owner && cfg.repo;
+        warnEl.style.cssText = 'display:;background:#fef3c7;color:#b45309';
+        if (!ghConfigured) {
+          warnEl.textContent = '⚠️ GitHub não configurado — salvo localmente. Outros dispositivos não verão esta foto. Configure em ⚙️ Configurações.';
+        } else {
+          warnEl.textContent = `⚠️ Upload para o GitHub falhou — salvo localmente (${sizeMB} MB). Verifique o token e repositório em ⚙️ Configurações.`;
+        }
+      }
     };
     reader.readAsDataURL(file);
   }
@@ -368,6 +381,7 @@
     grid.innerHTML = fotos.map(f => {
       const src   = adminSrc(f.src);
       const isB64 = f.src.startsWith('data:');
+      const isGH  = f.src.startsWith('https://raw.githubusercontent.com');
       return `
         <div class="gallery-admin-item">
           <img class="gallery-admin-img" src="${src}" alt="${f.alt}"
@@ -375,7 +389,8 @@
           <div class="gallery-admin-img-placeholder" style="display:none">📷</div>
           <div class="gallery-admin-cap" title="${f.caption}">
             ${f.caption}
-            ${isB64 ? '<span style="font-size:.65rem;color:#94a3b8;margin-left:.25rem">📁</span>' : ''}
+            ${isGH  ? '<span style="font-size:.65rem;color:#16a34a;margin-left:.25rem" title="Hospedado no GitHub — visível em todos os dispositivos">☁️</span>' : ''}
+            ${isB64 ? '<span style="font-size:.65rem;color:#f59e0b;margin-left:.25rem" title="Salvo localmente — outros dispositivos não verão esta foto">📁</span>' : ''}
           </div>
           <div class="gallery-admin-actions">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEdit(${f.id})">✏️ Editar</button>

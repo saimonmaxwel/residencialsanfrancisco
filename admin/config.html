@@ -165,6 +165,52 @@
         </div>
       </div>
 
+      <!-- ── INTEGRAÇÃO GITHUB ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">🐙 Integração com GitHub</span>
+        </div>
+        <div class="admin-card-body">
+          <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
+            Configure o repositório do GitHub para que as imagens enviadas na
+            <strong>Galeria</strong> sejam armazenadas diretamente no repositório e
+            fiquem visíveis em todos os dispositivos via GitHub Pages.
+          </p>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#1e40af;margin-bottom:1.25rem">
+            📋 <strong>Como gerar o Token:</strong> GitHub → Settings → Developer settings →
+            Personal access tokens → Tokens (classic) → Generate new token →
+            marque <code>repo</code> → copie e cole abaixo.
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ghOwner">Usuário / Organização</label>
+              <input type="text" id="ghOwner" class="form-control" placeholder="ex: saimonmaxwel">
+            </div>
+            <div class="form-group">
+              <label for="ghRepo">Nome do Repositório</label>
+              <input type="text" id="ghRepo" class="form-control" placeholder="ex: residencial">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ghBranch">Branch</label>
+              <input type="text" id="ghBranch" class="form-control" placeholder="main" value="main">
+            </div>
+            <div class="form-group">
+              <label for="ghToken">Personal Access Token (PAT)</label>
+              <input type="password" id="ghToken" class="form-control"
+                     placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+              <div class="form-hint">⚠️ Guardado apenas neste navegador. Não é exportado.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary" onclick="saveGithub()">💾 Salvar Configuração GitHub</button>
+            <button class="btn btn-ghost btn-sm" onclick="testGithub()">🔍 Testar conexão</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearGithub()" style="color:#ef4444">✕ Remover</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ── PUBLICAR NO GITHUB PAGES ── -->
       <div class="admin-card">
         <div class="admin-card-header">
@@ -385,7 +431,61 @@ const DB = {
     }
   }
 
+  /* ── GitHub ─────────────────────────────────────────────── */
+  function loadGithub() {
+    let cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) {}
+    document.getElementById('ghOwner').value  = cfg.owner  || '';
+    document.getElementById('ghRepo').value   = cfg.repo   || '';
+    document.getElementById('ghBranch').value = cfg.branch || 'main';
+    document.getElementById('ghToken').value  = cfg.token  || '';
+  }
+
+  function saveGithub() {
+    const owner  = document.getElementById('ghOwner').value.trim();
+    const repo   = document.getElementById('ghRepo').value.trim();
+    const branch = document.getElementById('ghBranch').value.trim() || 'main';
+    const token  = document.getElementById('ghToken').value.trim();
+    if (!owner || !repo || !token) {
+      toast('Preencha usuário, repositório e token.', 'error'); return;
+    }
+    localStorage.setItem('condo_github', JSON.stringify({ owner, repo, branch, token }));
+    toast('Configuração GitHub salva! Uploads da galeria agora irão para o repositório.');
+  }
+
+  async function testGithub() {
+    let cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) {}
+    if (!cfg.token || !cfg.owner || !cfg.repo) {
+      toast('Salve as configurações antes de testar.', 'error'); return;
+    }
+    toast('Testando conexão…', 'info');
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`,
+        { headers: { 'Authorization': `token ${cfg.token}` } }
+      );
+      if (res.ok) {
+        const d = await res.json();
+        toast(`✅ Conexão OK! Repositório: ${d.full_name}`);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        toast(`Erro ${res.status}: ${d.message || 'Token inválido ou repositório não encontrado.'}`, 'error');
+      }
+    } catch(e) {
+      toast('Falha de rede ao conectar com o GitHub.', 'error');
+    }
+  }
+
+  function clearGithub() {
+    if (!confirm('Remover a configuração do GitHub?')) return;
+    localStorage.removeItem('condo_github');
+    loadGithub();
+    toast('Configuração GitHub removida.', 'info');
+  }
+
   loadCfg();
+  loadGithub();
 </script>
 </body>
 </html>
