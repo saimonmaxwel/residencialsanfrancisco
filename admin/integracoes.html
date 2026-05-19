@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrações — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"       class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"      class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"      class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html"    class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"     class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"      class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="integracoes.html" class="sidebar-link"><span class="sidebar-link-icon">🔗</span> Integrações</a>
+      <a href="../index.html"    class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">🔗 Integrações</span>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ── CLOUDINARY ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">☁️ Cloudinary — Hospedagem de Imagens</span>
+        </div>
+        <div class="admin-card-body">
+          <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
+            Armazena as imagens da <strong>Galeria</strong> e o plano de fundo
+            na nuvem, tornando-os visíveis em todos os dispositivos.
+            O plano gratuito suporta até 25 GB.
+          </p>
+          <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#6b21a8;margin-bottom:1.25rem;line-height:1.7">
+            📋 <strong>Como configurar:</strong><br>
+            1. Acesse <strong>cloudinary.com</strong> e crie uma conta gratuita<br>
+            2. No Dashboard copie o <strong>Cloud name</strong><br>
+            3. Vá em Settings → Upload → <strong>Add upload preset</strong>
+               → defina como <strong>Unsigned</strong> → salve e copie o nome do preset
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cldName">Cloud Name</label>
+              <input type="text" id="cldName" class="form-control" placeholder="ex: meu-condominio">
+            </div>
+            <div class="form-group">
+              <label for="cldPreset">Upload Preset (unsigned)</label>
+              <input type="password" id="cldPreset" class="form-control"
+                     placeholder="ex: residencial_unsigned" autocomplete="off">
+            </div>
+          </div>
+          <div id="cldStatus" style="display:none;margin-bottom:.75rem;font-size:.82rem;padding:.5rem .85rem;border-radius:.4rem"></div>
+          <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary" onclick="saveCloudinary()">💾 Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="testCloudinary()">🔍 Testar conexão</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearCloudinary()" style="color:#ef4444">✕ Remover</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PUBLICAR NO GITHUB PAGES ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">🚀 Publicar no GitHub Pages</span>
+        </div>
+        <div class="admin-card-body">
+          <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
+            Como o site é estático, outros usuários não veem os dados salvos aqui.
+            Clique em <strong>Exportar data.js</strong> para baixar o arquivo com
+            todo o conteúdo atual como padrão do site. Depois substitua
+            <code>js/data.js</code> no projeto e faça <code>git push</code>.
+          </p>
+          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#166534;margin-bottom:1rem">
+            ⚠️ <strong>Imagens da galeria</strong> enviadas em base64 são muito grandes
+            para o arquivo. Use o Cloudinary (acima) ou adicione as imagens na pasta
+            <code>img/</code> e referencie pelo caminho (ex: <code>img/piscina.jpg</code>).
+          </div>
+          <button class="btn btn-primary" onclick="exportDataJS()">📥 Exportar data.js</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+  document.getElementById('sidebarNome').textContent = DB.get('config').nome;
+
+  /* ── Cloudinary ─────────────────────────────────────────── */
+  function loadCloudinary() {
+    let cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
+    document.getElementById('cldName').value   = cfg.cloudName    || '';
+    document.getElementById('cldPreset').value = cfg.uploadPreset ? '••••••••' : '';
+    document.getElementById('cldPreset').dataset.saved = cfg.uploadPreset || '';
+  }
+
+  function saveCloudinary() {
+    const cloudName = document.getElementById('cldName').value.trim();
+    const rawPreset = document.getElementById('cldPreset').value.trim();
+    const preset    = rawPreset === '••••••••'
+      ? document.getElementById('cldPreset').dataset.saved
+      : rawPreset;
+
+    if (!cloudName || !preset) {
+      toast('Preencha o Cloud Name e o Upload Preset.', 'error'); return;
+    }
+    localStorage.setItem('condo_cloudinary', JSON.stringify({ cloudName, uploadPreset: preset }));
+    document.getElementById('cldPreset').dataset.saved = preset;
+    setStatus('cldStatus', '✅ Configuração salva. Próximos uploads irão para o Cloudinary.', 'ok');
+    toast('Cloudinary configurado!');
+  }
+
+  async function testCloudinary() {
+    let cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
+    if (!cfg.cloudName || !cfg.uploadPreset) {
+      toast('Salve as configurações antes de testar.', 'error'); return;
+    }
+    setStatus('cldStatus', '⏳ Testando conexão…', 'info');
+    const px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const fd = new FormData();
+    fd.append('file', px);
+    fd.append('upload_preset', cfg.uploadPreset);
+    try {
+      const res  = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, { method:'POST', body:fd });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.secure_url) {
+        setStatus('cldStatus', `✅ Conexão OK! Cloud: ${cfg.cloudName}`, 'ok');
+      } else {
+        setStatus('cldStatus', `❌ Erro: ${json.error?.message || 'Preset ou Cloud Name inválido.'}`, 'err');
+      }
+    } catch(e) {
+      setStatus('cldStatus', '❌ Falha de rede ao conectar com o Cloudinary.', 'err');
+    }
+  }
+
+  function clearCloudinary() {
+    if (!confirm('Remover a configuração do Cloudinary?')) return;
+    localStorage.removeItem('condo_cloudinary');
+    loadCloudinary();
+    setStatus('cldStatus', '', '');
+    toast('Configuração Cloudinary removida.', 'info');
+  }
+
+  /* ── Exportar data.js ───────────────────────────────────── */
+  function exportDataJS() {
+    const keys = ['config','avisos','regras','descarte','galeria'];
+    const data = {};
+    keys.forEach(k => { data[k] = DB.get(k); });
+
+    let hasBase64 = false;
+    data.galeria = data.galeria.map(item => {
+      if (item.src && item.src.startsWith('data:')) {
+        hasBase64 = true;
+        const name = (item.alt || item.caption || 'foto')
+          .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        return { ...item, src: 'img/' + name + '.jpg' };
+      }
+      return item;
+    });
+
+    const db = `/* ============================================================
+   js/data.js — Camada de dados do condomínio
+   Exportado em: ${new Date().toLocaleString('pt-BR')}
+   ============================================================ */
+
+'use strict';
+
+const DEFAULTS = ${JSON.stringify(data, null, 2)};
+
+const DB = {
+  get(key) {
+    const raw = localStorage.getItem('condo_' + key);
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULTS[key]));
+  },
+  set(key, value)   { localStorage.setItem('condo_' + key, JSON.stringify(value)); },
+  reset(key)        { localStorage.removeItem('condo_' + key); },
+  nextId(arr)       { return arr.length > 0 ? Math.max(...arr.map(i => i.id)) + 1 : 1; },
+  add(key, item)    { const arr = this.get(key); item.id = this.nextId(arr); arr.push(item); this.set(key, arr); return item; },
+  update(key, id, data) {
+    const arr = this.get(key), idx = arr.findIndex(i => i.id === id);
+    if (idx !== -1) { arr[idx] = { ...arr[idx], ...data }; this.set(key, arr); }
+  },
+  remove(key, id)   { this.set(key, this.get(key).filter(i => i.id !== id)); }
+};`;
+
+    const blob = new Blob([db], { type:'text/javascript;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'data.js'; a.click();
+    URL.revokeObjectURL(url);
+    toast(hasBase64
+      ? 'data.js exportado! ⚠️ Imagens base64 foram convertidas em caminhos — adicione os arquivos em img/ e faça push.'
+      : 'data.js exportado! Substitua js/data.js no projeto e faça git push.');
+  }
+
+  /* ── Utilitário de status ───────────────────────────────── */
+  function setStatus(id, msg, type) {
+    const el = document.getElementById(id);
+    if (!msg) { el.style.display = 'none'; return; }
+    const colors = {
+      ok:   'background:#f0fdf4;color:#166534;border:1px solid #86efac',
+      err:  'background:#fef2f2;color:#991b1b;border:1px solid #fca5a5',
+      info: 'background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe'
+    };
+    el.style.cssText = `display:block;margin-bottom:.75rem;font-size:.82rem;padding:.5rem .85rem;border-radius:.4rem;${colors[type]||''}`;
+    el.textContent = msg;
+  }
+
+  loadCloudinary();
+</script>
+</body>
+</html>

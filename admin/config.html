@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -27,6 +27,7 @@
       <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
       <div class="sidebar-section-label">Sistema</div>
       <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="integracoes.html" class="sidebar-link"><span class="sidebar-link-icon">🔗</span> Integrações</a>
       <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
     </nav>
     <div class="sidebar-bottom">
@@ -158,11 +159,11 @@
           </div>
           <div class="form-group">
             <label for="secRecover">Código de Recuperação</label>
-            <input type="text" id="secRecover" class="form-control"
-                   placeholder="Defina um código para recuperar o acesso caso esqueça a senha">
+            <input type="password" id="secRecover" class="form-control"
+                   placeholder="Defina um código para recuperar o acesso caso esqueça a senha"
+                   autocomplete="new-password">
             <div class="form-hint">
-              ⚠️ Guarde este código em local seguro. Ele será exigido caso você esqueça a senha.<br>
-              Código atual: <strong id="recoverHint"></strong>
+              ⚠️ Guarde este código em local seguro. Ele será exigido caso você esqueça a senha.
             </div>
           </div>
           <button class="btn btn-primary" onclick="saveSenha()">🔒 Alterar Senha</button>
@@ -189,65 +190,6 @@
           <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
             <button class="btn btn-danger" onclick="resetAll()">🗑️ Restaurar TUDO para os padrões</button>
           </div>
-        </div>
-      </div>
-
-      <!-- ── INTEGRAÇÃO CLOUDINARY ── -->
-      <div class="admin-card">
-        <div class="admin-card-header">
-          <span class="admin-card-title">☁️ Integração com Cloudinary</span>
-        </div>
-        <div class="admin-card-body">
-          <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
-            Configure o Cloudinary para que as imagens da <strong>Galeria</strong>
-            sejam hospedadas na nuvem e fiquem visíveis em todos os dispositivos.
-            O plano gratuito suporta até 25 GB — mais do que suficiente.
-          </p>
-          <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#6b21a8;margin-bottom:1.25rem;line-height:1.6">
-            📋 <strong>Como configurar:</strong><br>
-            1. Acesse <strong>cloudinary.com</strong> → crie uma conta gratuita<br>
-            2. No Dashboard, copie o <strong>Cloud name</strong><br>
-            3. Vá em Settings → Upload → <strong>Add upload preset</strong> →
-               defina como <strong>Unsigned</strong> → salve e copie o nome do preset
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="cldName">Cloud Name</label>
-              <input type="text" id="cldName" class="form-control" placeholder="ex: meu-condominio">
-            </div>
-            <div class="form-group">
-              <label for="cldPreset">Upload Preset (unsigned)</label>
-              <input type="text" id="cldPreset" class="form-control" placeholder="ex: residencial_unsigned">
-            </div>
-          </div>
-          <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
-            <button class="btn btn-primary" onclick="saveCloudinary()">💾 Salvar Configuração</button>
-            <button class="btn btn-ghost btn-sm" onclick="testCloudinary()">🔍 Testar</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearCloudinary()" style="color:#ef4444">✕ Remover</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── PUBLICAR NO GITHUB PAGES ── -->
-      <div class="admin-card">
-        <div class="admin-card-header">
-          <span class="admin-card-title">🚀 Publicar no GitHub Pages</span>
-        </div>
-        <div class="admin-card-body">
-          <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
-            Como o site é estático, outros usuários não veem os dados salvos aqui.
-            Clique em <strong>Exportar data.js</strong> para gerar o arquivo com todo o
-            conteúdo atual (avisos, regras, descarte, configurações) como padrão do site.
-            Depois substitua <code>js/data.js</code> no projeto e faça
-            <code>git push</code> — todos passarão a ver o mesmo conteúdo.
-          </p>
-          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#166534;margin-bottom:1rem">
-            ⚠️ <strong>Imagens da galeria</strong> enviadas por upload (base64) são grandes demais para o arquivo.
-            Coloque os arquivos de imagem na pasta <code>img/</code> do projeto e use o campo
-            "Caminho da imagem" no admin da galeria para referenciá-las pelo nome
-            (ex: <code>img/piscina.jpg</code>).
-          </div>
-          <button class="btn btn-primary" onclick="exportDataJS()">📥 Exportar data.js</button>
         </div>
       </div>
 
@@ -369,8 +311,7 @@
     document.getElementById('cfgSindico').value  = cfg.sindico;
     document.getElementById('cfgAdmin').value    = cfg.administradora;
     document.getElementById('cfgWhats').value    = cfg.whatsapp;
-    document.getElementById('recoverHint').textContent = getRecover();
-    document.getElementById('secRecover').value  = getRecover();
+    document.getElementById('secRecover').value  = '';
     showLogoPreview(currentLogo);
     showHeroBgPreview(currentHeroBg);
     if (currentHeroBg && !currentHeroBg.startsWith('data:'))
@@ -412,9 +353,7 @@
     localStorage.setItem('condo_admin_pass', nova);
     if (recover) localStorage.setItem('condo_admin_recover', recover);
 
-    /* Limpa campos */
-    ['secAtual','secNova','secConf'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('recoverHint').textContent = getRecover();
+    ['secAtual','secNova','secConf','secRecover'].forEach(id => document.getElementById(id).value = '');
     toast('Senha alterada com sucesso! ✅');
   }
 
@@ -432,131 +371,7 @@
     loadCfg();
   }
 
-  function exportDataJS() {
-    const keys = ['config','avisos','regras','descarte','galeria'];
-    const data  = {};
-    keys.forEach(k => { data[k] = DB.get(k); });
-
-    /* Substitui base64 da galeria por caminho sugerido (arquivo deve estar em img/) */
-    let hasBase64 = false;
-    data.galeria = data.galeria.map(item => {
-      if (item.src && item.src.startsWith('data:')) {
-        hasBase64 = true;
-        const name = (item.alt || item.caption || 'foto')
-          .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-        return { ...item, src: 'img/' + name + '.jpg' };
-      }
-      return item;
-    });
-
-    const db = `/* ============================================================
-   js/data.js — Camada de dados do condomínio
-   Exportado em: ${new Date().toLocaleString('pt-BR')}
-   ============================================================ */
-
-'use strict';
-
-const DEFAULTS = ${JSON.stringify(data, null, 2)};
-
-/* ── Interface de acesso ao banco de dados ───────────────────── */
-const DB = {
-  get(key) {
-    const raw = localStorage.getItem('condo_' + key);
-    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULTS[key]));
-  },
-  set(key, value) {
-    localStorage.setItem('condo_' + key, JSON.stringify(value));
-  },
-  reset(key) {
-    localStorage.removeItem('condo_' + key);
-  },
-  nextId(arr) {
-    return arr.length > 0 ? Math.max(...arr.map(i => i.id)) + 1 : 1;
-  },
-  add(key, item) {
-    const arr = this.get(key);
-    item.id   = this.nextId(arr);
-    arr.push(item);
-    this.set(key, arr);
-    return item;
-  },
-  update(key, id, data) {
-    const arr = this.get(key);
-    const idx = arr.findIndex(i => i.id === id);
-    if (idx !== -1) { arr[idx] = { ...arr[idx], ...data }; this.set(key, arr); }
-  },
-  remove(key, id) {
-    this.set(key, this.get(key).filter(i => i.id !== id));
-  }
-};`;
-
-    const blob = new Blob([db], { type: 'text/javascript;charset=utf-8' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'data.js';
-    a.click();
-    URL.revokeObjectURL(url);
-
-    if (hasBase64) {
-      toast('data.js exportado! ⚠️ Imagens base64 foram convertidas em caminhos — adicione os arquivos em img/ e faça push.', 'info');
-    } else {
-      toast('data.js exportado! Substitua js/data.js no projeto e faça git push.');
-    }
-  }
-
-  /* ── Cloudinary ─────────────────────────────────────────── */
-  function loadCloudinary() {
-    let cfg = {};
-    try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
-    document.getElementById('cldName').value   = cfg.cloudName    || '';
-    document.getElementById('cldPreset').value = cfg.uploadPreset || '';
-  }
-
-  function saveCloudinary() {
-    const cloudName    = document.getElementById('cldName').value.trim();
-    const uploadPreset = document.getElementById('cldPreset').value.trim();
-    if (!cloudName || !uploadPreset) {
-      toast('Preencha o Cloud Name e o Upload Preset.', 'error'); return;
-    }
-    localStorage.setItem('condo_cloudinary', JSON.stringify({ cloudName, uploadPreset }));
-    toast('Configuração Cloudinary salva! Próximos uploads irão para a nuvem.');
-  }
-
-  async function testCloudinary() {
-    let cfg = {};
-    try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
-    if (!cfg.cloudName || !cfg.uploadPreset) {
-      toast('Salve as configurações antes de testar.', 'error'); return;
-    }
-    /* Testa com uma imagem mínima de 1x1 px em base64 */
-    toast('Testando conexão com Cloudinary…', 'info');
-    const px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-    const fd = new FormData();
-    fd.append('file', px);
-    fd.append('upload_preset', cfg.uploadPreset);
-    try {
-      const res  = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, { method: 'POST', body: fd });
-      const json = await res.json().catch(() => ({}));
-      if (res.ok && json.secure_url) {
-        toast(`✅ Cloudinary OK! Cloud: ${cfg.cloudName}`);
-      } else {
-        toast(`Erro: ${json.error?.message || 'Preset ou Cloud Name inválido.'}`, 'error');
-      }
-    } catch(e) {
-      toast('Falha de rede ao conectar com o Cloudinary.', 'error');
-    }
-  }
-
-  function clearCloudinary() {
-    if (!confirm('Remover a configuração do Cloudinary?')) return;
-    localStorage.removeItem('condo_cloudinary');
-    loadCloudinary();
-    toast('Configuração Cloudinary removida.', 'info');
-  }
-
   loadCfg();
-  loadCloudinary();
 </script>
 </body>
 </html>
