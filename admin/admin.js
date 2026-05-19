@@ -118,6 +118,97 @@ function injectBackToSite() {
   }
 }
 
+/* ── Sincroniza js/data.js no repositório GitHub ─────────────
+   Gera o data.js com os dados atuais e faz commit via API.
+   Retorna true em caso de sucesso.
+   ──────────────────────────────────────────────────────────── */
+async function syncDataJS() {
+  let cfg = {};
+  try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) { return false; }
+  if (!cfg.token || !cfg.owner || !cfg.repo) return false;
+
+  const branch  = cfg.branch || 'main';
+  const path    = 'js/data.js';
+  const apiUrl  = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`;
+  const headers = { 'Authorization': `token ${cfg.token}`, 'Content-Type': 'application/json' };
+
+  try {
+    /* Obtém o SHA atual do arquivo (necessário para atualizar) */
+    let sha = '';
+    const getRes = await fetch(`${apiUrl}?ref=${branch}`, { headers });
+    if (getRes.ok) { sha = (await getRes.json()).sha; }
+
+    /* Monta os dados — remove base64 da galeria (muito grandes para o arquivo) */
+    const keys = ['config', 'avisos', 'regras', 'descarte', 'galeria'];
+    const data = {};
+    keys.forEach(k => { data[k] = DB.get(k); });
+    data.galeria = data.galeria.map(item => {
+      if (item.src && item.src.startsWith('data:')) {
+        const name = (item.alt || item.caption || 'foto')
+          .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        return { ...item, src: 'img/' + name + '.jpg' };
+      }
+      return item;
+    });
+
+    const content = `/* ============================================================
+   js/data.js — Camada de dados do condomínio
+   Sincronizado em: ${new Date().toLocaleString('pt-BR')}
+   ============================================================ */
+
+'use strict';
+
+const DEFAULTS = ${JSON.stringify(data, null, 2)};
+
+/* ── Interface de acesso ao banco de dados ───────────────────── */
+const DB = {
+  get(key) {
+    const raw = localStorage.getItem('condo_' + key);
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULTS[key]));
+  },
+  set(key, value) {
+    localStorage.setItem('condo_' + key, JSON.stringify(value));
+  },
+  reset(key) {
+    localStorage.removeItem('condo_' + key);
+  },
+  nextId(arr) {
+    return arr.length > 0 ? Math.max(...arr.map(i => i.id)) + 1 : 1;
+  },
+  add(key, item) {
+    const arr = this.get(key);
+    item.id   = this.nextId(arr);
+    arr.push(item);
+    this.set(key, arr);
+    return item;
+  },
+  update(key, id, data) {
+    const arr = this.get(key);
+    const idx = arr.findIndex(i => i.id === id);
+    if (idx !== -1) { arr[idx] = { ...arr[idx], ...data }; this.set(key, arr); }
+  },
+  remove(key, id) {
+    this.set(key, this.get(key).filter(i => i.id !== id));
+  }
+};`;
+
+    /* Converte para base64 (necessário pela API do GitHub) */
+    const bytes  = new TextEncoder().encode(content);
+    let binary   = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    const b64    = btoa(binary);
+
+    const body = { message: 'Sync: atualiza data.js via painel admin', branch, content: b64 };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
+    return putRes.ok;
+  } catch(e) {
+    console.warn('syncDataJS falhou:', e);
+    return false;
+  }
+}
+
 /* ── Upload de imagem para o GitHub ───────────────────────────
    Requer configuração em Configurações → GitHub.
    Retorna a URL pública (raw.githubusercontent.com) ou null.

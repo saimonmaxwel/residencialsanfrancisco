@@ -438,7 +438,7 @@
   function cancelEdit() { clearForm(); }
 
   /* ── Salva a foto ── */
-  function savePhoto() {
+  async function savePhoto() {
     const src     = document.getElementById('fSrc').value.trim();
     const caption = document.getElementById('fCaption').value.trim();
     const alt     = document.getElementById('fAlt').value.trim();
@@ -453,21 +453,29 @@
       if (id) { DB.update('galeria', Number(id), data); toast('Foto atualizada! ✅'); }
       else    { DB.add('galeria', data);                toast('Foto adicionada! ✅'); }
     } catch (err) {
-      /* localStorage cheio */
       toast('Espaço insuficiente no localStorage. Exclua fotos antigas ou use imagens menores.', 'error');
       return;
     }
 
     clearForm();
     render();
+
+    /* Sincroniza data.js no GitHub para todos os dispositivos verem */
+    toast('☁️ Sincronizando com o GitHub…', 'info');
+    const ok = await syncDataJS();
+    if (ok)  toast('✅ Galeria publicada! Todos os dispositivos já podem ver.');
+    else     toast('⚠️ Salvo localmente. Configure o GitHub em ⚙️ Configurações para sincronizar.', 'info');
   }
 
   /* ── Remove uma foto ── */
-  function delPhoto(id) {
+  async function delPhoto(id) {
     if (!confirm('Remover esta foto da galeria?')) return;
     DB.remove('galeria', id);
     toast('Foto removida.', 'info');
     render();
+
+    const ok = await syncDataJS();
+    if (ok) toast('☁️ Galeria sincronizada.');
   }
 
   /* Impede que campo fSrc editado manualmente resete o preview */
