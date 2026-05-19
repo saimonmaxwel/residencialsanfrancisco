@@ -1,0 +1,128 @@
+/* ============================================================
+   admin/admin.js — Utilitários compartilhados do painel admin
+   Incluído em todas as páginas do admin.
+   ============================================================ */
+
+'use strict';
+
+/* ── Autenticação ─────────────────────────────────────────────
+   Cada página admin chama adminAuth() no topo do script.
+   Se não houver sessão ativa, redireciona para login.html.
+   ──────────────────────────────────────────────────────────── */
+function adminAuth() {
+  if (sessionStorage.getItem('condo_session') !== 'ok') {
+    window.location.href = 'login.html';
+  }
+}
+
+/* ── Toast de notificação ─────────────────────────────────────
+   type: 'success' | 'error' | 'info'
+   ──────────────────────────────────────────────────────────── */
+function toast(msg, type = 'success') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className   = `adm-toast ${type}`;
+  el.textContent = `${icons[type] || ''} ${msg}`;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('fading');
+    setTimeout(() => el.remove(), 400);
+  }, 2800);
+}
+
+/* ── Sidebar móvel ────────────────────────────────────────────
+   ──────────────────────────────────────────────────────────── */
+function initSidebar() {
+  const toggle  = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('adminSidebar');
+  if (!toggle || !sidebar) return;
+
+  toggle.addEventListener('click', e => {
+    e.stopPropagation();
+    sidebar.classList.toggle('open');
+  });
+
+  document.addEventListener('click', e => {
+    if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+}
+
+/* ── Link ativo na sidebar ────────────────────────────────────
+   ──────────────────────────────────────────────────────────── */
+function initActiveLink() {
+  const current = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    const href = (link.getAttribute('href') || '').split('/').pop();
+    link.classList.toggle('active', href === current);
+  });
+}
+
+/* ── Logout ───────────────────────────────────────────────────
+   ──────────────────────────────────────────────────────────── */
+function initLogout() {
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    if (confirm('Deseja sair do painel administrativo?')) {
+      sessionStorage.removeItem('condo_session');
+      window.location.href = '../index.html';
+    }
+  });
+}
+
+/* ── Modal genérico ───────────────────────────────────────────
+   Cada página admin gerencia seu próprio modal, mas estas
+   funções utilitárias ajudam a abrir/fechar com acessibilidade.
+   ──────────────────────────────────────────────────────────── */
+function openModal(overlayId) {
+  const el = document.getElementById(overlayId);
+  if (el) { el.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeModal(overlayId) {
+  const el = document.getElementById(overlayId);
+  if (el) { el.classList.remove('open'); document.body.style.overflow = ''; }
+}
+
+/* Fecha modal ao clicar no overlay (fora da caixa) */
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(el => {
+      el.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
+});
+
+/* ── Botão "Voltar ao Site" na topbar ─────────────────────────
+   Injetado dinamicamente para não precisar editar cada página.
+   ──────────────────────────────────────────────────────────── */
+function injectBackToSite() {
+  const topbar = document.querySelector('.admin-topbar');
+  if (!topbar) return;
+  let right = topbar.querySelector('.topbar-right');
+  if (!right) {
+    right = document.createElement('div');
+    right.className = 'topbar-right';
+    topbar.appendChild(right);
+  }
+  if (!right.querySelector('.btn-back-site')) {
+    right.insertAdjacentHTML('afterbegin',
+      `<a href="../index.html" class="btn btn-ghost btn-sm btn-back-site">← Voltar ao Site</a>`
+    );
+  }
+}
+
+/* ── Inicialização automática ─────────────────────────────────
+   ──────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  initSidebar();
+  initActiveLink();
+  initLogout();
+  injectBackToSite();
+});

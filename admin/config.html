@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"    class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"   class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"   class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html" class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">⚙️ Configurações</span>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ── DADOS DO CONDOMÍNIO ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">🏢 Dados do Condomínio</span>
+        </div>
+        <div class="admin-card-body">
+
+          <!-- Logo -->
+          <div class="form-group">
+            <label>Logo do Condomínio</label>
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+              <div id="logoPreviewBox" style="
+                width:5rem;height:5rem;border-radius:.6rem;border:2px dashed #cbd5e1;
+                display:flex;align-items:center;justify-content:center;
+                background:#f8fafc;overflow:hidden;flex-shrink:0;font-size:2rem">
+                <span id="logoEmoji">🏢</span>
+                <img id="logoPreviewImg" src="" alt="Logo atual"
+                     style="display:none;width:100%;height:100%;object-fit:contain">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:.5rem">
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:.35rem">
+                  📁 Enviar imagem
+                  <input type="file" id="logoFileInput" accept="image/*" style="display:none">
+                </label>
+                <button class="btn btn-ghost btn-sm" onclick="removeLogo()">✕ Remover logo</button>
+              </div>
+            </div>
+            <div class="form-hint" style="margin-top:.5rem">
+              Tamanho recomendado: quadrado, mín. 100×100 px. Imagens grandes aumentam o uso de armazenamento.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cfgNome">Nome do Condomínio</label>
+            <input type="text" id="cfgNome" class="form-control" placeholder="ex: Residencial San Francisco">
+          </div>
+          <div class="form-group">
+            <label for="cfgFrase">Frase de Boas-vindas</label>
+            <textarea id="cfgFrase" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cfgPortaria">Telefone da Portaria</label>
+              <input type="text" id="cfgPortaria" class="form-control" placeholder="(11) 99999-0000">
+            </div>
+            <div class="form-group">
+              <label for="cfgSindico">Telefone do Síndico</label>
+              <input type="text" id="cfgSindico" class="form-control" placeholder="(11) 99999-1111">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cfgAdmin">Telefone da Administradora</label>
+              <input type="text" id="cfgAdmin" class="form-control" placeholder="(11) 99999-2222">
+            </div>
+            <div class="form-group">
+              <label for="cfgWhats">WhatsApp para Reservas</label>
+              <input type="text" id="cfgWhats" class="form-control" placeholder="(11) 99999-9999">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveCfg()">💾 Salvar Configurações</button>
+        </div>
+      </div>
+
+      <!-- ── SEGURANÇA / SENHA ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">🔒 Segurança — Alterar Senha</span>
+        </div>
+        <div class="admin-card-body">
+          <div class="form-group">
+            <label for="secAtual">Senha Atual</label>
+            <input type="password" id="secAtual" class="form-control" placeholder="Digite a senha atual"
+                   autocomplete="current-password">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="secNova">Nova Senha</label>
+              <input type="password" id="secNova" class="form-control" placeholder="Nova senha"
+                     autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="secConf">Confirmar Nova Senha</label>
+              <input type="password" id="secConf" class="form-control" placeholder="Repita a nova senha"
+                     autocomplete="new-password">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="secRecover">Código de Recuperação</label>
+            <input type="text" id="secRecover" class="form-control"
+                   placeholder="Defina um código para recuperar o acesso caso esqueça a senha">
+            <div class="form-hint">
+              ⚠️ Guarde este código em local seguro. Ele será exigido caso você esqueça a senha.<br>
+              Código atual: <strong id="recoverHint"></strong>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveSenha()">🔒 Alterar Senha</button>
+        </div>
+      </div>
+
+      <!-- ── RESTAURAR DADOS PADRÃO ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">⚠️ Restaurar Dados Padrão</span>
+        </div>
+        <div class="admin-card-body">
+          <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
+            Restaura cada seção para os dados originais do sistema. Use apenas se quiser desfazer
+            todas as edições de uma seção específica. <strong>Esta ação não pode ser desfeita.</strong>
+          </p>
+          <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="resetSection('avisos',   '📢 Avisos')">↩️ Restaurar Avisos</button>
+            <button class="btn btn-ghost" onclick="resetSection('regras',   '📋 Regras')">↩️ Restaurar Regras</button>
+            <button class="btn btn-ghost" onclick="resetSection('descarte', '♻️ Descarte')">↩️ Restaurar Descarte</button>
+            <button class="btn btn-ghost" onclick="resetSection('galeria',  '📷 Galeria')">↩️ Restaurar Galeria</button>
+            <button class="btn btn-ghost" onclick="resetSection('config',   '⚙️ Configurações')">↩️ Restaurar Config</button>
+          </div>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
+            <button class="btn btn-danger" onclick="resetAll()">🗑️ Restaurar TUDO para os padrões</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/richeditor.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+
+  const edFrase = new RichEditor('cfgFrase');
+  edFrase.editable.setAttribute('data-placeholder', 'Texto exibido na página inicial...');
+
+  /* ── Logo ───────────────────────────────────────────── */
+  let currentLogo = DB.get('config').logo || '';
+
+  function showLogoPreview(src) {
+    const img   = document.getElementById('logoPreviewImg');
+    const emoji = document.getElementById('logoEmoji');
+    if (src) {
+      img.src              = src;
+      img.style.display    = 'block';
+      emoji.style.display  = 'none';
+    } else {
+      img.style.display    = 'none';
+      emoji.style.display  = 'block';
+    }
+  }
+
+  document.getElementById('logoFileInput').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 600 * 1024) {
+      toast(`Imagem grande (${(file.size / 1024).toFixed(0)} KB). Recomendado até 600 KB.`, 'info');
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentLogo = e.target.result;
+      showLogoPreview(currentLogo);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function removeLogo() {
+    currentLogo = '';
+    showLogoPreview('');
+    document.getElementById('logoFileInput').value = '';
+  }
+
+  const DEFAULT_PASS    = 'admin123';
+  const DEFAULT_RECOVER = 'recuperar123';
+  const getPass    = () => localStorage.getItem('condo_admin_pass')    || DEFAULT_PASS;
+  const getRecover = () => localStorage.getItem('condo_admin_recover') || DEFAULT_RECOVER;
+
+  /* Preenche o formulário com os dados atuais */
+  function loadCfg() {
+    const cfg = DB.get('config');
+    currentLogo = cfg.logo || '';
+    document.getElementById('sidebarNome').textContent = cfg.nome;
+    document.getElementById('cfgNome').value     = cfg.nome;
+    edFrase.setValue(cfg.frase);
+    document.getElementById('cfgPortaria').value = cfg.portaria;
+    document.getElementById('cfgSindico').value  = cfg.sindico;
+    document.getElementById('cfgAdmin').value    = cfg.administradora;
+    document.getElementById('cfgWhats').value    = cfg.whatsapp;
+    document.getElementById('recoverHint').textContent = getRecover();
+    document.getElementById('secRecover').value  = getRecover();
+    showLogoPreview(currentLogo);
+  }
+
+  function saveCfg() {
+    const nome = document.getElementById('cfgNome').value.trim();
+    if (!nome) { toast('O nome do condomínio é obrigatório.', 'error'); return; }
+    DB.set('config', {
+      nome,
+      frase:           edFrase.getValue(),
+      portaria:        document.getElementById('cfgPortaria').value.trim(),
+      sindico:         document.getElementById('cfgSindico').value.trim(),
+      administradora:  document.getElementById('cfgAdmin').value.trim(),
+      whatsapp:        document.getElementById('cfgWhats').value.trim(),
+      logo:            currentLogo
+    });
+    document.getElementById('sidebarNome').textContent = nome;
+    toast('Configurações salvas! As páginas públicas já refletem as mudanças.');
+  }
+
+  function saveSenha() {
+    const atual    = document.getElementById('secAtual').value;
+    const nova     = document.getElementById('secNova').value;
+    const conf     = document.getElementById('secConf').value;
+    const recover  = document.getElementById('secRecover').value.trim();
+
+    if (atual !== getPass()) {
+      toast('Senha atual incorreta.', 'error'); return;
+    }
+    if (!nova) {
+      toast('A nova senha não pode ser vazia.', 'error'); return;
+    }
+    if (nova !== conf) {
+      toast('As senhas não coincidem.', 'error'); return;
+    }
+    localStorage.setItem('condo_admin_pass', nova);
+    if (recover) localStorage.setItem('condo_admin_recover', recover);
+
+    /* Limpa campos */
+    ['secAtual','secNova','secConf'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('recoverHint').textContent = getRecover();
+    toast('Senha alterada com sucesso! ✅');
+  }
+
+  function resetSection(key, label) {
+    if (!confirm(`Restaurar "${label}" para os dados padrão? Todas as edições serão perdidas.`)) return;
+    DB.reset(key);
+    toast(`${label} restaurado para os padrões.`, 'info');
+    if (key === 'config') loadCfg();
+  }
+
+  function resetAll() {
+    if (!confirm('ATENÇÃO: Isso restaurará TODAS as seções para os dados padrão.\nTodas as suas edições serão apagadas.\n\nConfirmar?')) return;
+    ['avisos','regras','descarte','galeria','config'].forEach(k => DB.reset(k));
+    toast('Todos os dados foram restaurados para o padrão.', 'info');
+    loadCfg();
+  }
+
+  loadCfg();
+</script>
+</body>
+</html>

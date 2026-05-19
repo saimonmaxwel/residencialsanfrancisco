@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descarte — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"    class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"   class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"   class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html" class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">♻️ Descarte de Lixo</span>
+      <div class="topbar-right">
+        <a href="../descarte.html" class="btn btn-ghost btn-sm" target="_blank">🌐 Ver página</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">Tipos de Descarte</span>
+          <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Adicionar Tipo</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Ícone</th><th>Título</th><th>Local</th><th>Coleta</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="descarteTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Adicionar Tipo de Descarte</span>
+      <button class="modal-close" onclick="closeModal('modalOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fTitulo">Título</label>
+          <input type="text" id="fTitulo" class="form-control" placeholder="ex: Lixo Comum">
+        </div>
+        <div class="form-group">
+          <label for="fIcon">Ícone (emoji)</label>
+          <input type="text" id="fIcon" class="form-control" placeholder="ex: 🗑️" maxlength="4">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fCor">Cor do Badge</label>
+          <input type="color" id="fCor" class="form-control" value="#64748b" style="height:2.5rem;padding:.2rem .4rem">
+          <div class="form-hint">Cor do círculo de ícone no card.</div>
+        </div>
+        <div class="form-group">
+          <label for="fImgSrc">Caminho da Imagem</label>
+          <input type="text" id="fImgSrc" class="form-control" placeholder="ex: img/lixeira-comum.jpg">
+          <div class="form-hint">Relativo à raiz do site.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="fDesc">Descrição</label>
+        <textarea id="fDesc" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fLocal">Local de Descarte</label>
+        <input type="text" id="fLocal" class="form-control" placeholder="ex: Lixeiras cinzas no corredor do térreo">
+      </div>
+      <div class="form-group">
+        <label for="fColeta">Horário / Dias de Coleta</label>
+        <input type="text" id="fColeta" class="form-control" placeholder="ex: Segunda, quarta e sexta — às 19h">
+      </div>
+      <div class="form-group">
+        <label for="fObs">Observação Importante</label>
+        <textarea id="fObs" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDescarte()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/richeditor.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+  document.getElementById('sidebarNome').textContent = DB.get('config').nome;
+
+  const edDesc = new RichEditor('fDesc');
+  const edObs  = new RichEditor('fObs');
+  edDesc.editable.setAttribute('data-placeholder', 'Breve descrição do tipo de resíduo...');
+  edObs.editable.setAttribute('data-placeholder',  '⚠️ Observação importante (opcional)...');
+
+  function render() {
+    const itens = DB.get('descarte');
+    const tbody = document.getElementById('descarteTbody');
+    if (!itens.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">♻️</div><p>Nenhum tipo de descarte cadastrado.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = itens.map(d => `
+      <tr>
+        <td style="font-size:1.4rem;text-align:center">
+          <span style="background:${d.cor};border-radius:50%;width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem">${d.icon}</span>
+        </td>
+        <td class="td-bold">${d.titulo}</td>
+        <td class="td-muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.local}</td>
+        <td class="td-muted">${d.coleta}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="openEdit(${d.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="delItem(${d.id})" title="Excluir">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function clearForm() {
+    ['fTitulo','fIcon','fLocal','fColeta','fImgSrc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fCor').value = '#64748b';
+    edDesc.clear();
+    edObs.clear();
+  }
+
+  function openAdd() {
+    document.getElementById('modalTitle').textContent = 'Adicionar Tipo de Descarte';
+    document.getElementById('editId').value = '';
+    clearForm();
+    openModal('modalOverlay');
+  }
+
+  function openEdit(id) {
+    const d = DB.get('descarte').find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('modalTitle').textContent = 'Editar Tipo de Descarte';
+    document.getElementById('editId').value   = d.id;
+    document.getElementById('fTitulo').value  = d.titulo;
+    document.getElementById('fIcon').value    = d.icon;
+    document.getElementById('fCor').value     = d.cor;
+    edDesc.setValue(d.descricao);
+    document.getElementById('fLocal').value   = d.local;
+    document.getElementById('fColeta').value  = d.coleta;
+    edObs.setValue(d.obs);
+    document.getElementById('fImgSrc').value  = d.imgSrc || '';
+    openModal('modalOverlay');
+  }
+
+  function saveDescarte() {
+    const titulo = document.getElementById('fTitulo').value.trim();
+    if (!titulo) { toast('O título é obrigatório.', 'error'); return; }
+
+    const data = {
+      titulo,
+      icon:      document.getElementById('fIcon').value.trim()   || '🗑️',
+      cor:       document.getElementById('fCor').value,
+      descricao: edDesc.getValue(),
+      local:     document.getElementById('fLocal').value.trim(),
+      coleta:    document.getElementById('fColeta').value.trim(),
+      obs:       edObs.getValue(),
+      imgSrc:    document.getElementById('fImgSrc').value.trim()
+    };
+
+    const id = document.getElementById('editId').value;
+    if (id) { DB.update('descarte', Number(id), data); toast('Tipo de descarte atualizado!'); }
+    else    { DB.add('descarte', data);                toast('Tipo de descarte adicionado!'); }
+
+    closeModal('modalOverlay');
+    render();
+  }
+
+  function delItem(id) {
+    if (!confirm('Excluir este tipo de descarte?')) return;
+    DB.remove('descarte', id);
+    toast('Item excluído.', 'info');
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>

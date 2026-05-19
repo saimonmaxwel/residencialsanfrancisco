@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Residencial San Francisco — Central de Informações</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Nav injetado por js/nav.js -->
+<div id="nav-root"></div>
+
+<main>
+  <!-- ── HERO ── -->
+  <section class="section hero-section">
+    <div class="container">
+      <div class="hero">
+        <div class="hero-badge">🏢 Bem-vindo ao condomínio</div>
+        <h1 class="hero-title" id="heroTitle">Condomínio Residencial<br>
+          <span class="hero-title-accent" id="heroNome">San Francisco</span>
+        </h1>
+        <p class="hero-subtitle" id="heroFrase">
+          Bem-vindo à central de informações do condomínio.
+        </p>
+      </div>
+
+      <!-- Cards de atalho rápido -->
+      <div class="quick-cards">
+        <a href="avisos.html" class="quick-card">
+          <div class="quick-card-icon">📢</div>
+          <div class="quick-card-title">Avisos</div>
+          <div class="quick-card-desc">Comunicados recentes</div>
+        </a>
+        <a href="regras.html" class="quick-card">
+          <div class="quick-card-icon">📋</div>
+          <div class="quick-card-title">Regras</div>
+          <div class="quick-card-desc">Normas do condomínio</div>
+        </a>
+        <a href="descarte.html" class="quick-card">
+          <div class="quick-card-icon">♻️</div>
+          <div class="quick-card-title">Descarte de Lixo</div>
+          <div class="quick-card-desc">Locais e horários</div>
+        </a>
+        <a href="galeria.html" class="quick-card">
+          <div class="quick-card-icon">📷</div>
+          <div class="quick-card-title">Galeria</div>
+          <div class="quick-card-desc">Fotos do condomínio</div>
+        </a>
+        <a href="regras.html#seguranca" class="quick-card">
+          <div class="quick-card-icon">🔒</div>
+          <div class="quick-card-title">Segurança</div>
+          <div class="quick-card-desc">Regras e orientações</div>
+        </a>
+        <a href="regras.html#areas-comuns" class="quick-card">
+          <div class="quick-card-icon">🌳</div>
+          <div class="quick-card-title">Áreas Comuns</div>
+          <div class="quick-card-desc">Piscina, salão e mais</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ÚLTIMOS AVISOS ── -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">📢 Últimos Avisos</h2>
+        <p class="section-subtitle">Comunicados recentes do condomínio</p>
+      </div>
+      <div class="avisos-grid" id="avisosPreview"></div>
+      <div style="text-align:center;margin-top:1.5rem">
+        <a href="avisos.html" class="btn-ver-todos">Ver todos os avisos →</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer injetado por js/nav.js -->
+<div id="footer-root"></div>
+
+<button id="backToTop" class="back-to-top" title="Voltar ao topo"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  NAV.inject();
+
+  const cfg = DB.get('config');
+  document.title    = cfg.nome + ' — Central de Informações';
+  document.getElementById('heroNome').textContent  = cfg.nome;
+  document.getElementById('heroFrase').innerHTML = cfg.frase;
+  document.getElementById('heroTitle').innerHTML   =
+    `Condomínio Residencial<br><span class="hero-title-accent">${cfg.nome}</span>`;
+
+  /* Renderiza os 3 últimos avisos na home */
+  const avisos  = DB.get('avisos').slice(0, 3);
+  const preview = document.getElementById('avisosPreview');
+  preview.innerHTML = avisos.map(a => `
+    <div class="aviso-card aviso-${a.tipo} fade-up" data-searchable>
+      <div class="aviso-header">
+        <span class="aviso-badge">${a.badge}</span>
+        <span class="aviso-date">${a.data}</span>
+      </div>
+      <h3 class="aviso-title">${a.titulo}</h3>
+      <p class="aviso-body">${a.corpo}</p>
+      <div class="aviso-footer"><span class="aviso-tag">${a.tag}</span></div>
+    </div>`).join('');
+</script>
+</body>
+</html>

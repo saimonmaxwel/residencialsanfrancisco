@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Painel Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-box" id="loginBox">
+
+    <div class="login-logo">
+      <div class="login-logo-icon">🏢</div>
+      <div class="login-logo-title" id="condoNome">Residencial San Francisco</div>
+      <div class="login-logo-sub">Painel Administrativo</div>
+    </div>
+
+    <!-- ── TELA DE LOGIN ── -->
+    <div id="screenLogin">
+      <h2 class="login-title">Entrar</h2>
+      <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+      <div class="form-group">
+        <label for="loginPass">Senha</label>
+        <input type="password" id="loginPass" class="form-control" placeholder="Digite sua senha"
+               autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary login-btn" onclick="doLogin()">Entrar</button>
+      <div class="login-forgot">
+        <a href="#" onclick="showScreen('screenRecover')">Esqueci minha senha</a>
+      </div>
+    </div>
+
+    <!-- ── TELA DE RECUPERAÇÃO ── -->
+    <div id="screenRecover" style="display:none">
+      <h2 class="login-title">Recuperar Acesso</h2>
+      <div class="recover-box">
+        💡 Digite o <strong>código de recuperação</strong> que você definiu ao criar ou alterar a senha.
+        Se nunca alterou a senha, o código padrão é <strong>recuperar123</strong>.
+      </div>
+      <div class="login-error" id="recoverError">Código de recuperação incorreto.</div>
+      <div class="form-group">
+        <label for="recoverCode">Código de Recuperação</label>
+        <input type="text" id="recoverCode" class="form-control" placeholder="Digite o código de recuperação">
+      </div>
+      <button class="btn btn-primary login-btn" onclick="doRecover()">Verificar Código</button>
+      <div class="login-forgot">
+        <a href="#" onclick="showScreen('screenLogin')">← Voltar ao login</a>
+      </div>
+    </div>
+
+    <!-- ── TELA DE NOVA SENHA ── -->
+    <div id="screenNewPass" style="display:none">
+      <h2 class="login-title">Criar Nova Senha</h2>
+      <div class="login-error" id="newPassError">As senhas não coincidem.</div>
+      <div class="form-group">
+        <label for="newPass1">Nova Senha</label>
+        <input type="password" id="newPass1" class="form-control" placeholder="Nova senha">
+      </div>
+      <div class="form-group">
+        <label for="newPass2">Confirmar Nova Senha</label>
+        <input type="password" id="newPass2" class="form-control" placeholder="Repita a nova senha">
+      </div>
+      <button class="btn btn-primary login-btn" onclick="doSetNewPass()">Salvar Nova Senha</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script>
+  /* Se já estiver logado, redireciona ao dashboard */
+  if (sessionStorage.getItem('condo_session') === 'ok') {
+    window.location.href = 'index.html';
+  }
+
+  const cfg = DB.get('config');
+  document.getElementById('condoNome').textContent = cfg.nome;
+
+  /* Senha e código de recuperação padrões */
+  const DEFAULT_PASS    = 'admin123';
+  const DEFAULT_RECOVER = 'recuperar123';
+
+  function getPass()    { return localStorage.getItem('condo_admin_pass')     || DEFAULT_PASS; }
+  function getRecover() { return localStorage.getItem('condo_admin_recover')  || DEFAULT_RECOVER; }
+
+  function showScreen(id) {
+    ['screenLogin','screenRecover','screenNewPass'].forEach(s => {
+      document.getElementById(s).style.display = s === id ? '' : 'none';
+    });
+    ['loginError','recoverError','newPassError'].forEach(e => {
+      document.getElementById(e).classList.remove('show');
+    });
+  }
+
+  function doLogin() {
+    const val = document.getElementById('loginPass').value;
+    if (val === getPass()) {
+      sessionStorage.setItem('condo_session', 'ok');
+      window.location.href = 'index.html';
+    } else {
+      document.getElementById('loginError').classList.add('show');
+    }
+  }
+
+  function doRecover() {
+    const val = document.getElementById('recoverCode').value.trim();
+    if (val === getRecover()) {
+      showScreen('screenNewPass');
+    } else {
+      document.getElementById('recoverError').classList.add('show');
+    }
+  }
+
+  function doSetNewPass() {
+    const p1 = document.getElementById('newPass1').value;
+    const p2 = document.getElementById('newPass2').value;
+    if (!p1 || p1 !== p2) {
+      document.getElementById('newPassError').classList.add('show');
+      return;
+    }
+    localStorage.setItem('condo_admin_pass', p1);
+    sessionStorage.setItem('condo_session', 'ok');
+    window.location.href = 'index.html';
+  }
+
+  /* Enter nos campos de senha */
+  document.getElementById('loginPass').addEventListener('keydown',  e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('recoverCode').addEventListener('keydown', e => { if (e.key === 'Enter') doRecover(); });
+</script>
+</body>
+</html>

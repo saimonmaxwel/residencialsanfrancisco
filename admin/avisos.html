@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avisos — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"    class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"   class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"   class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html" class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">📢 Avisos</span>
+      <div class="topbar-right">
+        <a href="../avisos.html" class="btn btn-ghost btn-sm" target="_blank">🌐 Ver página</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">Lista de Avisos</span>
+          <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Adicionar Aviso</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Tipo</th><th>Título</th><th>Data</th><th>Tag</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="avisosTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Adicionar Aviso</span>
+      <button class="modal-close" onclick="closeModal('modalOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fTipo">Tipo / Cor</label>
+          <select id="fTipo" class="form-control">
+            <option value="warning">⚠️ Manutenção / Alerta (amarelo)</option>
+            <option value="info">ℹ️ Informativo (azul)</option>
+            <option value="success">✅ Positivo / Confirmação (verde)</option>
+            <option value="danger">🚨 Urgente / Perigo (vermelho)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fData">Data</label>
+          <input type="text" id="fData" class="form-control" placeholder="ex: 19/05/2026">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="fBadge">Rótulo do Badge</label>
+        <input type="text" id="fBadge" class="form-control" placeholder="ex: ⚠️ Manutenção">
+      </div>
+      <div class="form-group">
+        <label for="fTitulo">Título</label>
+        <input type="text" id="fTitulo" class="form-control" placeholder="Título do aviso">
+      </div>
+      <div class="form-group">
+        <label for="fCorpo">Texto do Aviso</label>
+        <textarea id="fCorpo" class="form-control" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fTag">Tag de Rodapé</label>
+        <input type="text" id="fTag" class="form-control" placeholder="ex: 🔧 Infraestrutura">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAviso()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/richeditor.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+  document.getElementById('sidebarNome').textContent = DB.get('config').nome;
+
+  const edCorpo = new RichEditor('fCorpo');
+  document.getElementById('fCorpo').closest('.rte-wrap')
+    ?.querySelector('.rte-editor')
+    ?.setAttribute('data-placeholder', 'Texto do aviso...');
+
+  const BADGE_MAP = { warning:'badge-warning', info:'badge-info', success:'badge-success', danger:'badge-danger' };
+
+  function render() {
+    const avisos = DB.get('avisos');
+    const tbody  = document.getElementById('avisosTbody');
+    if (!avisos.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">📭</div><p>Nenhum aviso cadastrado ainda.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = avisos.map(a => `
+      <tr>
+        <td><span class="badge ${BADGE_MAP[a.tipo]}">${a.badge}</span></td>
+        <td class="td-bold">${a.titulo}</td>
+        <td class="td-muted">${a.data}</td>
+        <td class="td-muted">${a.tag}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="openEdit(${a.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="delAviso(${a.id})" title="Excluir">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function openAdd() {
+    document.getElementById('modalTitle').textContent = 'Adicionar Aviso';
+    document.getElementById('editId').value = '';
+    document.getElementById('fTipo').value  = 'warning';
+    ['fBadge','fTitulo','fTag','fData'].forEach(id => document.getElementById(id).value = '');
+    edCorpo.clear();
+    openModal('modalOverlay');
+  }
+
+  function openEdit(id) {
+    const a = DB.get('avisos').find(x => x.id === id);
+    if (!a) return;
+    document.getElementById('modalTitle').textContent = 'Editar Aviso';
+    document.getElementById('editId').value  = a.id;
+    document.getElementById('fTipo').value   = a.tipo;
+    document.getElementById('fBadge').value  = a.badge;
+    document.getElementById('fTitulo').value = a.titulo;
+    edCorpo.setValue(a.corpo);
+    document.getElementById('fTag').value    = a.tag;
+    document.getElementById('fData').value   = a.data;
+    openModal('modalOverlay');
+  }
+
+  function saveAviso() {
+    const titulo = document.getElementById('fTitulo').value.trim();
+    const corpo  = edCorpo.getValue();
+    if (!titulo || !edCorpo.getTextContent()) { toast('Preencha pelo menos Título e Texto.', 'error'); return; }
+
+    const data = {
+      tipo:   document.getElementById('fTipo').value,
+      badge:  document.getElementById('fBadge').value.trim()  || '📢 Aviso',
+      titulo,
+      corpo,
+      tag:    document.getElementById('fTag').value.trim()    || '',
+      data:   document.getElementById('fData').value.trim()   || new Date().toLocaleDateString('pt-BR')
+    };
+
+    const id = document.getElementById('editId').value;
+    if (id) { DB.update('avisos', Number(id), data); toast('Aviso atualizado!'); }
+    else    { DB.add('avisos', data);                toast('Aviso adicionado!'); }
+
+    closeModal('modalOverlay');
+    render();
+  }
+
+  function delAviso(id) {
+    if (!confirm('Excluir este aviso permanentemente?')) return;
+    DB.remove('avisos', id);
+    toast('Aviso excluído.', 'info');
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regras — Residencial San Francisco</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">📋 Regras do Condomínio</h2>
+        <p class="section-subtitle">Conheça as normas para uma convivência harmoniosa e respeitosa</p>
+      </div>
+
+      <!-- Filtros de categoria -->
+      <div class="category-filters" id="categoryFilters">
+        <button class="filter-btn active" data-filter="all">Todas</button>
+      </div>
+
+      <!-- Lista de regras -->
+      <div class="rules-grid view-lista" id="rulesGrid">
+        <p style="text-align:center;color:#64748b">Carregando regras...</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="footer-root"></div>
+<button id="backToTop" class="back-to-top" title="Voltar ao topo"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  NAV.inject();
+
+  const cfg = DB.get('config');
+  document.title = 'Regras — ' + cfg.nome;
+
+  /* Labels das categorias */
+  const CAT_LABELS = {
+    'gerais':      '📌 Gerais',
+    'areas-comuns':'🌳 Áreas Comuns',
+    'piscina':     '🏊 Piscina',
+    'salao':       '🎊 Salão',
+    'garagem':     '🚗 Garagem',
+    'animais':     '🐾 Animais',
+    'silencio':    '🔇 Silêncio',
+    'seguranca':   '🔒 Segurança',
+    'visitantes':  '👤 Visitantes',
+    'obras':       '🔨 Obras'
+  };
+  const BADGE_CLASS = {
+    'gerais':'badge-gerais','areas-comuns':'badge-areas','piscina':'badge-piscina',
+    'salao':'badge-salao','garagem':'badge-garagem','animais':'badge-animais',
+    'silencio':'badge-silencio','seguranca':'badge-seguranca',
+    'visitantes':'badge-visitantes','obras':'badge-obras'
+  };
+
+  /* Lê o modo definido pelo admin (padrão: cards) */
+  const VIEWS       = ['lista','cards','grade'];
+  const currentView = localStorage.getItem('condo_regras_view') || 'cards';
+
+  function applyView(view) {
+    const grid = document.getElementById('rulesGrid');
+    grid.classList.remove(...VIEWS.map(v => 'view-' + v));
+    grid.classList.add('view-' + view);
+  }
+
+  function toggleRule(header) {
+    if (currentView === 'grade') return;
+    const card   = header.closest('.rule-card');
+    const isOpen = card.classList.contains('open');
+    document.querySelectorAll('.rule-card.open').forEach(c => c.classList.remove('open'));
+    if (!isOpen) card.classList.add('open');
+  }
+
+  function renderRegras() {
+    const regras = DB.get('regras');
+    const grid   = document.getElementById('rulesGrid');
+    const filtersEl = document.getElementById('categoryFilters');
+
+    if (!regras.length) {
+      grid.innerHTML = '<p style="text-align:center;color:#64748b;padding:3rem 0">Nenhuma regra cadastrada.</p>';
+      return;
+    }
+
+    /* Monta botões de filtro com as categorias existentes */
+    const cats = [...new Set(regras.map(r => r.categoria))];
+    filtersEl.innerHTML = '<button class="filter-btn active" data-filter="all">Todas</button>' +
+      cats.map(c => `<button class="filter-btn" data-filter="${c}">${CAT_LABELS[c] || c}</button>`).join('');
+
+    /* Renderiza cards */
+    grid.innerHTML = regras.map(r => `
+      <div class="rule-card fade-up" data-category="${r.categoria}" data-searchable id="rule-${r.id}">
+        <div class="rule-header" onclick="toggleRule(this)">
+          <div class="rule-header-left">
+            <span class="rule-icon">${r.icon}</span>
+            <div>
+              <span class="rule-category-badge ${BADGE_CLASS[r.categoria] || 'badge-gerais'}">
+                ${CAT_LABELS[r.categoria] || r.categoria}
+              </span>
+              <h3 class="rule-title">${r.titulo}</h3>
+            </div>
+          </div>
+          <span class="rule-toggle-icon" aria-hidden="true">▼</span>
+        </div>
+        <div class="rule-body">
+          <p>${r.descricao}</p>
+          ${r.lista && r.lista.length ? `<ul class="rule-list">${r.lista.map(i=>`<li>${i}</li>`).join('')}</ul>` : ''}
+          ${r.importante ? `<div class="rule-important">💡 <strong>Importante:</strong> ${r.importante}</div>` : ''}
+        </div>
+      </div>`).join('');
+
+    /* Filtro de categorias */
+    filtersEl.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.filter;
+        filtersEl.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.rule-card').forEach(card => {
+          const match = f === 'all' || card.dataset.category === f;
+          card.classList.toggle('hidden', !match);
+          if (!match) card.classList.remove('open');
+        });
+      });
+    });
+
+    /* Fade-up */
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); obs.unobserve(e.target); } });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.fade-up:not(.in-view)').forEach(el => obs.observe(el));
+  }
+
+  renderRegras();
+  applyView(currentView);
+
+  /* Abre diretamente uma categoria via hash na URL (ex: regras.html#piscina) */
+  if (window.location.hash) {
+    const cat = window.location.hash.slice(1);
+    const btn = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
+    if (btn) btn.click();
+  }
+</script>
+</body>
+</html>

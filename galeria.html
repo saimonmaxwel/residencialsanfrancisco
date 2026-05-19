@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria — Residencial San Francisco</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">📷 Galeria de Fotos</h2>
+        <p class="section-subtitle">Conheça os principais locais e áreas do condomínio</p>
+      </div>
+      <div class="gallery-grid" id="galleryGrid">
+        <p style="text-align:center;color:#64748b">Carregando galeria...</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true">
+  <div class="lightbox-backdrop" onclick="closeLightbox()"></div>
+  <div class="lightbox-inner">
+    <button class="lightbox-close" onclick="closeLightbox()" aria-label="Fechar">✕</button>
+    <img id="lightboxImg" src="" alt="" class="lightbox-img">
+    <p id="lightboxCaption" class="lightbox-caption"></p>
+  </div>
+</div>
+
+<div id="footer-root"></div>
+<button id="backToTop" class="back-to-top" title="Voltar ao topo"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  NAV.inject();
+
+  const cfg = DB.get('config');
+  document.title = 'Galeria — ' + cfg.nome;
+
+  function openLightbox(el) {
+    const img  = el.querySelector('img');
+    const cap  = el.querySelector('.gallery-caption');
+    const lb   = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightboxImg');
+    const lbCap = document.getElementById('lightboxCaption');
+
+    if (img && img.complete && img.naturalWidth > 0) {
+      lbImg.src   = img.src;
+      lbImg.alt   = img.alt;
+      lbImg.style.display = '';
+    } else {
+      lbImg.style.display = 'none';
+    }
+    lbCap.textContent = cap ? cap.textContent : '';
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(() => { document.getElementById('lightboxImg').src = ''; }, 300);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  function renderGaleria() {
+    const fotos = DB.get('galeria');
+    const grid  = document.getElementById('galleryGrid');
+
+    if (!fotos.length) {
+      grid.innerHTML = '<p style="text-align:center;color:#64748b;padding:3rem 0;grid-column:1/-1">Nenhuma foto cadastrada.</p>';
+      return;
+    }
+
+    grid.innerHTML = fotos.map(f => `
+      <div class="gallery-item fade-up" onclick="openLightbox(this)" tabindex="0" role="button"
+           onkeydown="if(event.key==='Enter')openLightbox(this)" aria-label="Ver foto: ${f.caption}">
+        <img src="${f.src}" alt="${f.alt}" onerror="imgFallback(this)">
+        <div class="gallery-placeholder" style="display:none">📷</div>
+        <div class="gallery-overlay">
+          <span class="gallery-caption">${f.caption}</span>
+        </div>
+      </div>`).join('');
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); obs.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.in-view)').forEach(el => obs.observe(el));
+  }
+
+  renderGaleria();
+</script>
+</body>
+</html>

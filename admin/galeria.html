@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    /* ── Zona de upload ── */
+    .upload-zone {
+      border: 2.5px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 2.25rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      background: #f8fafc;
+      position: relative;
+    }
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-zone-icon  { font-size: 2.25rem; margin-bottom: .5rem; }
+    .upload-zone-title { font-size: .95rem; font-weight: 700; color: #1e293b; margin-bottom: .25rem; }
+    .upload-zone-sub   { font-size: .8rem; color: #64748b; }
+    .upload-zone-sub span { color: #3b82f6; font-weight: 600; }
+
+    /* ── Preview após seleção ── */
+    .upload-preview {
+      display: none;
+      align-items: flex-start;
+      gap: 1.25rem;
+      padding: 1rem;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 10px;
+      margin-top: .75rem;
+      flex-wrap: wrap;
+    }
+    .upload-preview.show { display: flex; }
+    .upload-preview img {
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+    .upload-preview-info { flex: 1; min-width: 160px; }
+    .upload-preview-name { font-size: .85rem; font-weight: 700; color: #14532d; word-break: break-all; }
+    .upload-preview-size { font-size: .75rem; color: #64748b; margin-top: .2rem; }
+    .upload-preview-warn { font-size: .75rem; color: #b45309; margin-top: .4rem; background:#fef3c7; padding:.3rem .6rem; border-radius:6px; }
+
+    /* ── Separador ou ── */
+    .divider-or {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin: 1rem 0 .5rem;
+      font-size: .78rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .divider-or::before,
+    .divider-or::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    /* ── Aviso localStorage ── */
+    .storage-bar-wrap {
+      margin-bottom: 1.25rem;
+    }
+    .storage-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .78rem;
+      color: #64748b;
+      margin-bottom: .35rem;
+    }
+    .storage-bar-track {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 50px;
+      overflow: hidden;
+    }
+    .storage-bar-fill {
+      height: 100%;
+      border-radius: 50px;
+      transition: width .4s;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"    class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"   class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"   class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html" class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">📷 Galeria</span>
+      <div class="topbar-right">
+        <a href="../galeria.html" class="btn btn-ghost btn-sm" target="_blank">🌐 Ver página</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ── FORMULÁRIO DE ADIÇÃO / EDIÇÃO ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title" id="formTitle">➕ Adicionar Foto</span>
+          <button class="btn btn-ghost btn-sm" id="cancelEditBtn" style="display:none"
+                  onclick="cancelEdit()">✕ Cancelar edição</button>
+        </div>
+        <div class="admin-card-body">
+          <input type="hidden" id="editId">
+          <!-- Indicador de uso do localStorage -->
+          <div class="storage-bar-wrap" id="storageBarWrap">
+            <div class="storage-bar-label">
+              <span>💾 Espaço utilizado no localStorage</span>
+              <span id="storageText">calculando…</span>
+            </div>
+            <div class="storage-bar-track">
+              <div class="storage-bar-fill" id="storageFill" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- ZONA DE UPLOAD -->
+          <div class="form-group">
+            <label>📁 Selecionar Arquivo de Imagem</label>
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="fileInput" accept="image/*" onchange="onFileChange(this)">
+              <div class="upload-zone-icon">📸</div>
+              <div class="upload-zone-title">Arraste uma foto aqui ou clique para selecionar</div>
+              <div class="upload-zone-sub">
+                Formatos aceitos: <span>JPG, PNG, GIF, WebP</span> — Máx. recomendado: <span>1 MB por foto</span>
+              </div>
+            </div>
+            <!-- Preview após seleção -->
+            <div class="upload-preview" id="uploadPreview">
+              <img id="previewImg" src="" alt="Preview">
+              <div class="upload-preview-info">
+                <div class="upload-preview-name" id="previewName"></div>
+                <div class="upload-preview-size" id="previewSize"></div>
+                <div class="upload-preview-warn" id="previewWarn" style="display:none"></div>
+                <button class="btn btn-ghost btn-sm" style="margin-top:.6rem" onclick="clearFile()">
+                  ✕ Remover arquivo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEPARADOR — OU digitar URL/caminho -->
+          <div class="divider-or">ou informe um caminho / URL diretamente</div>
+
+          <div class="form-group">
+            <label for="fSrc">Caminho ou URL da Imagem</label>
+            <input type="text" id="fSrc" class="form-control"
+                   placeholder="ex: img/piscina.jpg  ou  https://exemplo.com/foto.jpg">
+            <div class="form-hint">
+              Use este campo se a imagem já está na pasta <code>img/</code> do site ou se
+              quiser usar uma URL externa. O upload acima preenche este campo automaticamente.
+            </div>
+          </div>
+
+          <!-- Legenda e alt -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fCaption">Legenda</label>
+              <input type="text" id="fCaption" class="form-control"
+                     placeholder="ex: 🏊 Piscina">
+              <div class="form-hint">Aparece no hover e no lightbox.</div>
+            </div>
+            <div class="form-group">
+              <label for="fAlt">Texto Alternativo</label>
+              <input type="text" id="fAlt" class="form-control"
+                     placeholder="ex: Vista da piscina do condomínio">
+              <div class="form-hint">Para acessibilidade (leitores de tela).</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="savePhoto()">💾 Salvar Foto</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── GRADE DE FOTOS ── -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">Fotos Cadastradas</span>
+          <span class="td-muted" id="photoCount"></span>
+        </div>
+        <div class="admin-card-body">
+          <div class="gallery-admin-grid" id="galleryAdminGrid">
+            <div class="empty-state">
+              <div class="empty-state-icon">📷</div>
+              <p>Nenhuma foto cadastrada.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.admin-content -->
+  </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
+
+<script src="../js/data.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+  document.getElementById('sidebarNome').textContent = DB.get('config').nome;
+
+  /* ── Retorna o src correto para exibir no admin (pasta /admin/) ── */
+  function adminSrc(src) {
+    if (!src) return '';
+    /* base64 ou URL externa: usa direto */
+    if (src.startsWith('data:') || src.startsWith('http')) return src;
+    /* caminho relativo (ex: img/piscina.jpg): prefixar com ../ */
+    return '../' + src;
+  }
+
+  /* ── Indicador de uso do localStorage ── */
+  function updateStorageBar() {
+    try {
+      let total = 0;
+      for (const k in localStorage) {
+        if (Object.prototype.hasOwnProperty.call(localStorage, k)) {
+          total += (localStorage[k].length + k.length) * 2; // UTF-16
+        }
+      }
+      const maxBytes  = 5 * 1024 * 1024; // 5 MB estimado
+      const pct       = Math.min(100, (total / maxBytes) * 100);
+      const usedKB    = (total / 1024).toFixed(0);
+      const usedMB    = (total / 1024 / 1024).toFixed(2);
+
+      document.getElementById('storageText').textContent =
+        `${usedKB < 1024 ? usedKB + ' KB' : usedMB + ' MB'} de ~5 MB (${pct.toFixed(1)}%)`;
+
+      const fill  = document.getElementById('storageFill');
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#16a34a';
+    } catch (_) {}
+  }
+
+  /* ── Drag & drop na zona de upload ── */
+  const uploadZone = document.getElementById('uploadZone');
+  uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  });
+
+  /* ── Ao selecionar arquivo pelo input ── */
+  function onFileChange(input) {
+    const file = input.files[0];
+    if (file) processFile(file);
+  }
+
+  /* ── Converte o arquivo para base64 e preenche o formulário ── */
+  function processFile(file) {
+    if (!file.type.startsWith('image/')) {
+      toast('Selecione um arquivo de imagem (JPG, PNG, etc.).', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64 = e.target.result;
+      const sizeKB = Math.round(file.size / 1024);
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+
+      /* Preenche o campo src com o base64 */
+      document.getElementById('fSrc').value = base64;
+
+      /* Auto-preenche o alt com o nome do arquivo (sem extensão) */
+      if (!document.getElementById('fAlt').value) {
+        const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        document.getElementById('fAlt').value = name.charAt(0).toUpperCase() + name.slice(1);
+      }
+
+      /* Exibe preview */
+      document.getElementById('previewImg').src  = base64;
+      document.getElementById('previewName').textContent = file.name;
+      document.getElementById('previewSize').textContent =
+        `Tamanho: ${sizeKB < 1024 ? sizeKB + ' KB' : sizeMB + ' MB'}`;
+
+      /* Aviso se o arquivo for grande */
+      const warnEl = document.getElementById('previewWarn');
+      if (file.size > 800 * 1024) {
+        warnEl.style.display = '';
+        warnEl.textContent   =
+          `⚠️ Imagem grande (${sizeMB} MB). Recomendamos fotos abaixo de 800 KB ` +
+          `para não esgotar o espaço do localStorage. Considere comprimir antes de enviar.`;
+      } else {
+        warnEl.style.display = 'none';
+      }
+
+      document.getElementById('uploadPreview').classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Remove o arquivo selecionado ── */
+  function clearFile() {
+    document.getElementById('fileInput').value  = '';
+    document.getElementById('fSrc').value       = '';
+    document.getElementById('uploadPreview').classList.remove('show');
+    document.getElementById('previewImg').src   = '';
+  }
+
+  /* ── Renderiza a grade de fotos ── */
+  function render() {
+    const fotos = DB.get('galeria');
+    const grid  = document.getElementById('galleryAdminGrid');
+    document.getElementById('photoCount').textContent = fotos.length + ' foto(s)';
+    updateStorageBar();
+
+    if (!fotos.length) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-state-icon">📷</div>
+          <p>Nenhuma foto cadastrada ainda.<br>Use o formulário acima para adicionar.</p>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = fotos.map(f => {
+      const src   = adminSrc(f.src);
+      const isB64 = f.src.startsWith('data:');
+      return `
+        <div class="gallery-admin-item">
+          <img class="gallery-admin-img" src="${src}" alt="${f.alt}"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="gallery-admin-img-placeholder" style="display:none">📷</div>
+          <div class="gallery-admin-cap" title="${f.caption}">
+            ${f.caption}
+            ${isB64 ? '<span style="font-size:.65rem;color:#94a3b8;margin-left:.25rem">📁</span>' : ''}
+          </div>
+          <div class="gallery-admin-actions">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEdit(${f.id})">✏️ Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="delPhoto(${f.id})">🗑️</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Limpa o formulário ── */
+  function clearForm() {
+    document.getElementById('editId').value   = '';
+    document.getElementById('fCaption').value = '';
+    document.getElementById('fAlt').value     = '';
+    clearFile();
+    document.getElementById('formTitle').textContent         = '➕ Adicionar Foto';
+    document.getElementById('cancelEditBtn').style.display   = 'none';
+  }
+
+  /* ── Abre edição de uma foto existente ── */
+  function openEdit(id) {
+    const f = DB.get('galeria').find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('editId').value   = f.id;
+    document.getElementById('fSrc').value     = f.src;
+    document.getElementById('fCaption').value = f.caption;
+    document.getElementById('fAlt').value     = f.alt;
+    document.getElementById('formTitle').textContent       = '✏️ Editando Foto';
+    document.getElementById('cancelEditBtn').style.display = '';
+
+    /* Mostra preview se for base64 ou URL */
+    const src = adminSrc(f.src);
+    if (src) {
+      document.getElementById('previewImg').src  = src;
+      document.getElementById('previewName').textContent =
+        f.src.startsWith('data:') ? 'Imagem salva no sistema' : f.src;
+      document.getElementById('previewSize').textContent = '';
+      document.getElementById('previewWarn').style.display = 'none';
+      document.getElementById('uploadPreview').classList.add('show');
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEdit() { clearForm(); }
+
+  /* ── Salva a foto ── */
+  function savePhoto() {
+    const src     = document.getElementById('fSrc').value.trim();
+    const caption = document.getElementById('fCaption').value.trim();
+    const alt     = document.getElementById('fAlt').value.trim();
+
+    if (!src)     { toast('Selecione uma imagem ou informe um caminho.', 'error'); return; }
+    if (!caption) { toast('Preencha a legenda da foto.', 'error'); return; }
+
+    const data = { src, caption, alt: alt || caption };
+    const id   = document.getElementById('editId').value;
+
+    try {
+      if (id) { DB.update('galeria', Number(id), data); toast('Foto atualizada! ✅'); }
+      else    { DB.add('galeria', data);                toast('Foto adicionada! ✅'); }
+    } catch (err) {
+      /* localStorage cheio */
+      toast('Espaço insuficiente no localStorage. Exclua fotos antigas ou use imagens menores.', 'error');
+      return;
+    }
+
+    clearForm();
+    render();
+  }
+
+  /* ── Remove uma foto ── */
+  function delPhoto(id) {
+    if (!confirm('Remover esta foto da galeria?')) return;
+    DB.remove('galeria', id);
+    toast('Foto removida.', 'info');
+    render();
+  }
+
+  /* Impede que campo fSrc editado manualmente resete o preview */
+  document.getElementById('fSrc').addEventListener('input', function() {
+    const v = this.value.trim();
+    if (!v) {
+      document.getElementById('uploadPreview').classList.remove('show');
+      return;
+    }
+    if (!v.startsWith('data:')) {
+      document.getElementById('previewImg').src  = adminSrc(v);
+      document.getElementById('previewName').textContent = v;
+      document.getElementById('previewSize').textContent = '';
+      document.getElementById('previewWarn').style.display = 'none';
+      document.getElementById('uploadPreview').classList.add('show');
+    }
+  });
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"    class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"   class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"   class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html" class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-right">
+        <span class="topbar-user">👤 Administrador</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- Boas-vindas -->
+      <div class="admin-card" style="margin-bottom:1.5rem">
+        <div class="admin-card-body" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <div style="font-size:2rem">👋</div>
+          <div>
+            <div style="font-weight:800;font-size:1.1rem;color:#0f172a" id="welcomeNome">Bem-vindo ao painel admin</div>
+            <div style="font-size:.85rem;color:#64748b">Gerencie todo o conteúdo do condomínio por aqui.</div>
+          </div>
+          <a href="../index.html" class="btn btn-ghost btn-sm" target="_blank" style="margin-left:auto">🌐 Ver Site →</a>
+        </div>
+      </div>
+
+      <!-- Cards de estatísticas -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <span class="stat-icon">📢</span>
+          <span class="stat-value" id="statAvisos">0</span>
+          <span class="stat-label">Avisos</span>
+          <a href="avisos.html" class="stat-link">Gerenciar →</a>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">📋</span>
+          <span class="stat-value" id="statRegras">0</span>
+          <span class="stat-label">Regras</span>
+          <a href="regras.html" class="stat-link">Gerenciar →</a>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">♻️</span>
+          <span class="stat-value" id="statDescarte">0</span>
+          <span class="stat-label">Tipos de Descarte</span>
+          <a href="descarte.html" class="stat-link">Gerenciar →</a>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">📷</span>
+          <span class="stat-value" id="statGaleria">0</span>
+          <span class="stat-label">Fotos na Galeria</span>
+          <a href="galeria.html" class="stat-link">Gerenciar →</a>
+        </div>
+      </div>
+
+      <!-- Ações rápidas -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">⚡ Ações Rápidas</span>
+        </div>
+        <div class="admin-card-body" style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <a href="avisos.html"   class="btn btn-primary btn-sm">📢 Novo Aviso</a>
+          <a href="regras.html"   class="btn btn-ghost btn-sm">📋 Nova Regra</a>
+          <a href="descarte.html" class="btn btn-ghost btn-sm">♻️ Novo Descarte</a>
+          <a href="galeria.html"  class="btn btn-ghost btn-sm">📷 Nova Foto</a>
+          <a href="config.html"   class="btn btn-ghost btn-sm">⚙️ Configurações</a>
+        </div>
+      </div>
+
+      <!-- Últimos avisos -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">📢 Últimos Avisos</span>
+          <a href="avisos.html" class="btn btn-ghost btn-sm">Ver todos</a>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Tipo</th><th>Título</th><th>Data</th></tr>
+            </thead>
+            <tbody id="recentAvisos"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /.admin-content -->
+  </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
+
+<script src="../js/data.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+
+  const cfg = DB.get('config');
+  document.title = 'Dashboard — ' + cfg.nome;
+  document.getElementById('sidebarNome').textContent  = cfg.nome;
+  document.getElementById('welcomeNome').textContent  = 'Bem-vindo ao painel — ' + cfg.nome;
+
+  document.getElementById('statAvisos').textContent   = DB.get('avisos').length;
+  document.getElementById('statRegras').textContent   = DB.get('regras').length;
+  document.getElementById('statDescarte').textContent = DB.get('descarte').length;
+  document.getElementById('statGaleria').textContent  = DB.get('galeria').length;
+
+  const TIPO_BADGE = { warning:'badge-warning', info:'badge-info', success:'badge-success', danger:'badge-danger' };
+  const tbody = document.getElementById('recentAvisos');
+  const avisos = DB.get('avisos').slice(0, 5);
+  tbody.innerHTML = avisos.length
+    ? avisos.map(a => `
+        <tr>
+          <td><span class="badge ${TIPO_BADGE[a.tipo]}">${a.badge}</span></td>
+          <td class="td-bold">${a.titulo}</td>
+          <td class="td-muted">${a.data}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:1.5rem">Nenhum aviso.</td></tr>';
+</script>
+</body>
+</html>

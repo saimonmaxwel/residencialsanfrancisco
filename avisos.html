@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avisos — Residencial San Francisco</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">📢 Avisos Importantes</h2>
+        <p class="section-subtitle">Fique por dentro dos comunicados e novidades do condomínio</p>
+      </div>
+      <div class="avisos-grid" id="avisosGrid">
+        <p style="text-align:center;color:#64748b">Carregando avisos...</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="footer-root"></div>
+<button id="backToTop" class="back-to-top" title="Voltar ao topo"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  NAV.inject();
+
+  const cfg = DB.get('config');
+  document.title = 'Avisos — ' + cfg.nome;
+
+  function renderAvisos() {
+    const avisos = DB.get('avisos');
+    const grid   = document.getElementById('avisosGrid');
+
+    if (!avisos.length) {
+      grid.innerHTML = '<p style="text-align:center;color:#64748b;padding:3rem 0">Nenhum aviso cadastrado.</p>';
+      return;
+    }
+
+    grid.innerHTML = avisos.map(a => `
+      <div class="aviso-card aviso-${a.tipo} fade-up" data-searchable>
+        <div class="aviso-header">
+          <span class="aviso-badge">${a.badge}</span>
+          <span class="aviso-date">${a.data}</span>
+        </div>
+        <h3 class="aviso-title">${a.titulo}</h3>
+        <p class="aviso-body">${a.corpo}</p>
+        <div class="aviso-footer"><span class="aviso-tag">${a.tag}</span></div>
+      </div>`).join('');
+
+    /* Reaplica o observer de fade-up para os novos elementos */
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); obs.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.in-view)').forEach(el => obs.observe(el));
+  }
+
+  renderAvisos();
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regras — Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">🏢</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title" id="sidebarNome">San Francisco</span>
+        <span class="sidebar-brand-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Geral</div>
+      <a href="index.html"    class="sidebar-link"><span class="sidebar-link-icon">📊</span> Dashboard</a>
+      <div class="sidebar-section-label">Conteúdo</div>
+      <a href="avisos.html"   class="sidebar-link"><span class="sidebar-link-icon">📢</span> Avisos</a>
+      <a href="regras.html"   class="sidebar-link"><span class="sidebar-link-icon">📋</span> Regras</a>
+      <a href="descarte.html" class="sidebar-link"><span class="sidebar-link-icon">♻️</span> Descarte</a>
+      <a href="galeria.html"  class="sidebar-link"><span class="sidebar-link-icon">📷</span> Galeria</a>
+      <div class="sidebar-section-label">Sistema</div>
+      <a href="config.html"   class="sidebar-link"><span class="sidebar-link-icon">⚙️</span> Configurações</a>
+      <a href="../index.html" class="sidebar-link" target="_blank"><span class="sidebar-link-icon">🌐</span> Ver Site</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="sidebar-logout" id="logoutBtn">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <span class="topbar-title">📋 Regras</span>
+      <div class="topbar-right">
+        <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--adm-txt-light)">
+          <span>Exibição:</span>
+          <div style="display:flex;gap:.25rem" id="adminViewBtns">
+            <button class="btn btn-ghost btn-sm" data-view="lista"  title="Lista (acordeão)">☰ Lista</button>
+            <button class="btn btn-ghost btn-sm" data-view="cards"  title="Cards (3 colunas)">⊞ Cards</button>
+            <button class="btn btn-ghost btn-sm" data-view="grade"  title="Grade compacta">⊟ Grade</button>
+          </div>
+        </div>
+        <a href="../regras.html" class="btn btn-ghost btn-sm" target="_blank">🌐 Ver página</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">Lista de Regras</span>
+          <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Adicionar Regra</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Ícone</th><th>Categoria</th><th>Título</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="regrasTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Adicionar Regra</span>
+      <button class="modal-close" onclick="closeModal('modalOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fCategoria">Categoria</label>
+          <select id="fCategoria" class="form-control">
+            <option value="gerais">📌 Gerais</option>
+            <option value="areas-comuns">🌳 Áreas Comuns</option>
+            <option value="piscina">🏊 Piscina</option>
+            <option value="salao">🎊 Salão de Festas</option>
+            <option value="garagem">🚗 Garagem</option>
+            <option value="animais">🐾 Animais</option>
+            <option value="silencio">🔇 Silêncio</option>
+            <option value="seguranca">🔒 Segurança</option>
+            <option value="visitantes">👤 Visitantes</option>
+            <option value="obras">🔨 Obras</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fIcon">Ícone (emoji)</label>
+          <input type="text" id="fIcon" class="form-control" placeholder="ex: 📌" maxlength="4">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="fTitulo">Título da Regra</label>
+        <input type="text" id="fTitulo" class="form-control" placeholder="Título da regra">
+      </div>
+      <div class="form-group">
+        <label for="fDesc">Descrição</label>
+        <textarea id="fDesc" class="form-control" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fLista">Itens da Lista</label>
+        <textarea id="fLista" class="form-control" rows="5"
+                  placeholder="Um item por linha. Deixe vazio se não quiser lista."></textarea>
+        <div class="form-hint">Cada linha vira um item com marcador •</div>
+      </div>
+      <div class="form-group">
+        <label for="fImportante">Destaque / Importante</label>
+        <textarea id="fImportante" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveRegra()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/richeditor.js"></script>
+<script src="admin.js"></script>
+<script>
+  adminAuth();
+  document.getElementById('sidebarNome').textContent = DB.get('config').nome;
+
+  const edDesc       = new RichEditor('fDesc');
+  const edImportante = new RichEditor('fImportante');
+  edDesc.editable.setAttribute('data-placeholder', 'Texto explicativo da regra...');
+  edImportante.editable.setAttribute('data-placeholder', 'Destaque em amarelo (opcional)...');
+
+  const CAT_LABELS = {
+    'gerais':'Gerais','areas-comuns':'Áreas Comuns','piscina':'Piscina','salao':'Salão',
+    'garagem':'Garagem','animais':'Animais','silencio':'Silêncio','seguranca':'Segurança',
+    'visitantes':'Visitantes','obras':'Obras'
+  };
+
+  function render() {
+    const regras = DB.get('regras');
+    const tbody  = document.getElementById('regrasTbody');
+    if (!regras.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon">📋</div><p>Nenhuma regra cadastrada.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = regras.map(r => `
+      <tr>
+        <td style="font-size:1.3rem;text-align:center">${r.icon}</td>
+        <td><span class="badge badge-info">${CAT_LABELS[r.categoria] || r.categoria}</span></td>
+        <td class="td-bold">${r.titulo}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="openEdit(${r.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="delRegra(${r.id})" title="Excluir">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function openAdd() {
+    document.getElementById('modalTitle').textContent = 'Adicionar Regra';
+    document.getElementById('editId').value = '';
+    document.getElementById('fCategoria').value = 'gerais';
+    ['fIcon','fTitulo','fLista'].forEach(id => document.getElementById(id).value = '');
+    edDesc.clear();
+    edImportante.clear();
+    openModal('modalOverlay');
+  }
+
+  function openEdit(id) {
+    const r = DB.get('regras').find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('modalTitle').textContent  = 'Editar Regra';
+    document.getElementById('editId').value            = r.id;
+    document.getElementById('fCategoria').value        = r.categoria;
+    document.getElementById('fIcon').value             = r.icon;
+    document.getElementById('fTitulo').value           = r.titulo;
+    edDesc.setValue(r.descricao);
+    document.getElementById('fLista').value            = (r.lista || []).join('\n');
+    edImportante.setValue(r.importante || '');
+    openModal('modalOverlay');
+  }
+
+  function saveRegra() {
+    const titulo = document.getElementById('fTitulo').value.trim();
+    if (!titulo) { toast('O título é obrigatório.', 'error'); return; }
+
+    const listaRaw = document.getElementById('fLista').value;
+    const lista    = listaRaw.split('\n').map(l => l.trim()).filter(Boolean);
+
+    const data = {
+      categoria:  document.getElementById('fCategoria').value,
+      icon:       document.getElementById('fIcon').value.trim() || '📌',
+      titulo,
+      descricao:  edDesc.getValue(),
+      lista,
+      importante: edImportante.getValue()
+    };
+
+    const id = document.getElementById('editId').value;
+    if (id) { DB.update('regras', Number(id), data); toast('Regra atualizada!'); }
+    else    { DB.add('regras', data);                toast('Regra adicionada!'); }
+
+    closeModal('modalOverlay');
+    render();
+  }
+
+  function delRegra(id) {
+    if (!confirm('Excluir esta regra permanentemente?')) return;
+    DB.remove('regras', id);
+    toast('Regra excluída.', 'info');
+    render();
+  }
+
+  render();
+
+  /* ── Seletor de modo de exibição ── */
+  const adminViewBtns = document.getElementById('adminViewBtns');
+  const savedView     = localStorage.getItem('condo_regras_view') || 'cards';
+
+  function setAdminView(view) {
+    localStorage.setItem('condo_regras_view', view);
+    adminViewBtns.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('btn-primary', b.dataset.view === view)
+    );
+    toast(`Modo "${view}" salvo. A página de regras já reflete a mudança.`);
+  }
+
+  adminViewBtns.querySelectorAll('button').forEach(btn => {
+    if (btn.dataset.view === savedView) btn.classList.add('btn-primary');
+    btn.addEventListener('click', () => setAdminView(btn.dataset.view));
+  });
+</script>
+</body>
+</html>

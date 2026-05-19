@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descarte de Lixo — Residencial San Francisco</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">♻️ Descarte de Lixo</h2>
+        <p class="section-subtitle">Saiba onde e como descartar cada tipo de resíduo corretamente</p>
+      </div>
+      <div class="waste-grid" id="wasteGrid">
+        <p style="text-align:center;color:#64748b">Carregando...</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="footer-root"></div>
+<button id="backToTop" class="back-to-top" title="Voltar ao topo"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  NAV.inject();
+
+  const cfg = DB.get('config');
+  document.title = 'Descarte de Lixo — ' + cfg.nome;
+
+  function renderDescarte() {
+    const itens = DB.get('descarte');
+    const grid  = document.getElementById('wasteGrid');
+
+    if (!itens.length) {
+      grid.innerHTML = '<p style="text-align:center;color:#64748b;padding:3rem 0">Nenhum item cadastrado.</p>';
+      return;
+    }
+
+    grid.innerHTML = itens.map(d => `
+      <div class="waste-card fade-up" data-searchable>
+        <div class="waste-img-wrap">
+          <img src="${d.imgSrc}" alt="${d.titulo}" class="waste-img" onerror="imgFallback(this)">
+          <div class="waste-img-placeholder" style="display:none">${d.icon}</div>
+        </div>
+        <div class="waste-content">
+          <div class="waste-badge" style="--badge-bg:${d.cor}">${d.icon}</div>
+          <h3 class="waste-title">${d.titulo}</h3>
+          <p class="waste-desc">${d.descricao}</p>
+          <div class="waste-info">
+            <div class="waste-info-row">
+              <span class="wi-label">📍 Local:</span>
+              <span>${d.local}</span>
+            </div>
+            <div class="waste-info-row">
+              <span class="wi-label">🕐 Coleta:</span>
+              <span>${d.coleta}</span>
+            </div>
+          </div>
+          <div class="waste-obs">${d.obs}</div>
+        </div>
+      </div>`).join('');
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); obs.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-up:not(.in-view)').forEach(el => obs.observe(el));
+  }
+
+  renderDescarte();
+</script>
+</body>
+</html>
