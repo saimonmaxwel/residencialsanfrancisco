@@ -130,6 +130,58 @@
               <input type="text" id="cfgWhats" class="form-control" placeholder="(11) 99999-9999">
             </div>
           </div>
+          <!-- Barra de rolagem -->
+          <div class="form-group" style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0">
+            <label style="font-weight:700;font-size:.9rem">🖱️ Barra de Rolagem</label>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:.75rem">
+              <div class="form-group" style="margin:0">
+                <label for="sbWidth">Largura: <strong id="sbWidthVal">8</strong>px</label>
+                <input type="range" id="sbWidth" min="4" max="20" step="1" value="8"
+                       style="width:100%;accent-color:var(--primary)"
+                       oninput="document.getElementById('sbWidthVal').textContent=this.value;previewScrollbar()">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label for="sbRadius">Arredondamento: <strong id="sbRadiusVal">6</strong>px</label>
+                <input type="range" id="sbRadius" min="0" max="12" step="1" value="6"
+                       style="width:100%;accent-color:var(--primary)"
+                       oninput="document.getElementById('sbRadiusVal').textContent=this.value;previewScrollbar()">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label for="sbTrack">Cor do trilho</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="color" id="sbTrack" value="#f1f1f1" style="width:2.5rem;height:2rem;border:none;cursor:pointer;border-radius:.3rem" oninput="previewScrollbar()">
+                  <input type="text" id="sbTrackHex" class="form-control" value="#f1f1f1" style="font-size:.8rem"
+                         oninput="document.getElementById('sbTrack').value=this.value;previewScrollbar()">
+                </div>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label for="sbThumb">Cor do indicador</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="color" id="sbThumb" value="#94a3b8" style="width:2.5rem;height:2rem;border:none;cursor:pointer;border-radius:.3rem" oninput="previewScrollbar()">
+                  <input type="text" id="sbThumbHex" class="form-control" value="#94a3b8" style="font-size:.8rem"
+                         oninput="document.getElementById('sbThumb').value=this.value;previewScrollbar()">
+                </div>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label for="sbHover">Cor ao passar o mouse</label>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <input type="color" id="sbHover" value="#64748b" style="width:2.5rem;height:2rem;border:none;cursor:pointer;border-radius:.3rem" oninput="previewScrollbar()">
+                  <input type="text" id="sbHoverHex" class="form-control" value="#64748b" style="font-size:.8rem"
+                         oninput="document.getElementById('sbHover').value=this.value;previewScrollbar()">
+                </div>
+              </div>
+              <!-- Preview ao vivo -->
+              <div class="form-group" style="margin:0">
+                <label>Pré-visualização</label>
+                <div id="sbPreviewWrap" style="
+                  height:80px;overflow-y:scroll;border:1px solid #e2e8f0;border-radius:.5rem;
+                  padding:.5rem .75rem;font-size:.75rem;color:#64748b;background:#fafafa">
+                  <div id="sbPreviewInner">Linha 1<br>Linha 2<br>Linha 3<br>Linha 4<br>Linha 5<br>Linha 6<br>Linha 7<br>Linha 8</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button class="btn btn-primary" onclick="saveCfg()">💾 Salvar Configurações</button>
         </div>
       </div>
@@ -329,7 +381,8 @@
       administradora:  document.getElementById('cfgAdmin').value.trim(),
       whatsapp:        document.getElementById('cfgWhats').value.trim(),
       logo:            currentLogo,
-      heroBg:          currentHeroBg
+      heroBg:          currentHeroBg,
+      scrollbar:       getScrollbarValues()
     });
     document.getElementById('sidebarNome').textContent = nome;
     toast('Configurações salvas! As páginas públicas já refletem as mudanças.');
@@ -361,7 +414,7 @@
     if (!confirm(`Restaurar "${label}" para os dados padrão? Todas as edições serão perdidas.`)) return;
     DB.reset(key);
     toast(`${label} restaurado para os padrões.`, 'info');
-    if (key === 'config') loadCfg();
+    if (key === 'config') { loadCfg(); loadScrollbar(); }
   }
 
   function resetAll() {
@@ -371,7 +424,57 @@
     loadCfg();
   }
 
+  /* ── Scrollbar ──────────────────────────────────────── */
+  function loadScrollbar() {
+    const sb = DB.get('config').scrollbar || {};
+    const w  = sb.width           || '8';
+    const r  = sb.radius          || '6';
+    const tr = sb.trackColor      || '#f1f1f1';
+    const th = sb.thumbColor      || '#94a3b8';
+    const hv = sb.thumbHoverColor || '#64748b';
+    document.getElementById('sbWidth').value      = w;
+    document.getElementById('sbWidthVal').textContent = w;
+    document.getElementById('sbRadius').value     = r;
+    document.getElementById('sbRadiusVal').textContent = r;
+    document.getElementById('sbTrack').value      = tr;
+    document.getElementById('sbTrackHex').value   = tr;
+    document.getElementById('sbThumb').value      = th;
+    document.getElementById('sbThumbHex').value   = th;
+    document.getElementById('sbHover').value      = hv;
+    document.getElementById('sbHoverHex').value   = hv;
+    previewScrollbar();
+  }
+
+  function previewScrollbar() {
+    const w  = document.getElementById('sbWidth').value  + 'px';
+    const r  = document.getElementById('sbRadius').value + 'px';
+    const tr = document.getElementById('sbTrack').value;
+    const th = document.getElementById('sbThumb').value;
+    const hv = document.getElementById('sbHover').value;
+    document.getElementById('sbTrackHex').value = tr;
+    document.getElementById('sbThumbHex').value = th;
+    document.getElementById('sbHoverHex').value = hv;
+    let el = document.getElementById('sbPreviewStyle');
+    if (!el) { el = document.createElement('style'); el.id = 'sbPreviewStyle'; document.head.appendChild(el); }
+    el.textContent =
+      `#sbPreviewWrap::-webkit-scrollbar{width:${w}}` +
+      `#sbPreviewWrap::-webkit-scrollbar-track{background:${tr}}` +
+      `#sbPreviewWrap::-webkit-scrollbar-thumb{background:${th};border-radius:${r}}` +
+      `#sbPreviewWrap::-webkit-scrollbar-thumb:hover{background:${hv}}`;
+  }
+
+  function getScrollbarValues() {
+    return {
+      width:           document.getElementById('sbWidth').value,
+      trackColor:      document.getElementById('sbTrack').value,
+      thumbColor:      document.getElementById('sbThumb').value,
+      thumbHoverColor: document.getElementById('sbHover').value,
+      radius:          document.getElementById('sbRadius').value
+    };
+  }
+
   loadCfg();
+  loadScrollbar();
 </script>
 </body>
 </html>

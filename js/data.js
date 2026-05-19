@@ -17,7 +17,14 @@ const DEFAULTS = {
     administradora:  '(11) 99999-2222',
     whatsapp:        '(11) 99999-9999',
     logo:            '',
-    heroBg:          ''
+    heroBg:          '',
+    scrollbar: {
+      width:          '8',
+      trackColor:     '#f1f1f1',
+      thumbColor:     '#94a3b8',
+      thumbHoverColor:'#64748b',
+      radius:         '6'
+    }
   },
 
   avisos: [

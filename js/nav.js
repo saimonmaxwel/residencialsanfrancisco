@@ -323,6 +323,27 @@ function submitAdminRecover() {
   window.location.href = 'admin/index.html';
 }
 
+/* Aplica o CSS da barra de rolagem definido nas configurações */
+function applyScrollbar() {
+  const sb = DB.get('config').scrollbar || {};
+  if (!sb.width) return;
+  let el = document.getElementById('condo-scrollbar-style');
+  if (!el) {
+    el = document.createElement('style');
+    el.id = 'condo-scrollbar-style';
+    document.head.appendChild(el);
+  }
+  const w = sb.width + 'px';
+  const r = (sb.radius || '0') + 'px';
+  el.textContent =
+    `::-webkit-scrollbar{width:${w}}` +
+    `::-webkit-scrollbar-track{background:${sb.trackColor||'#f1f1f1'}}` +
+    `::-webkit-scrollbar-thumb{background:${sb.thumbColor||'#888'};border-radius:${r}}` +
+    `::-webkit-scrollbar-thumb:hover{background:${sb.thumbHoverColor||'#555'}}` +
+    `*{scrollbar-width:auto;scrollbar-color:${sb.thumbColor||'#888'} ${sb.trackColor||'#f1f1f1'}}`;
+}
+applyScrollbar();
+
 /* Utilitário global para fallback de imagem */
 function imgFallback(img) {
   img.style.display = 'none';
