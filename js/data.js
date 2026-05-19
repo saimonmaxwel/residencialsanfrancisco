@@ -16,7 +16,8 @@ const DEFAULTS = {
     sindico:         '(11) 99999-1111',
     administradora:  '(11) 99999-2222',
     whatsapp:        '(11) 99999-9999',
-    logo:            ''
+    logo:            '',
+    heroBg:          ''
   },
 
   avisos: [

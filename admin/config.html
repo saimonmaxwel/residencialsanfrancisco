@@ -74,6 +74,33 @@
             </div>
           </div>
 
+          <!-- Plano de fundo do hero -->
+          <div class="form-group" style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0">
+            <label>Plano de Fundo da Página Inicial</label>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start">
+              <!-- Preview -->
+              <div id="heroBgPreviewBox" style="
+                width:160px;height:90px;border-radius:.6rem;border:2px dashed #cbd5e1;
+                display:flex;align-items:center;justify-content:center;
+                background:linear-gradient(135deg,#0a1628,#1a4fad);
+                overflow:hidden;flex-shrink:0;font-size:.75rem;color:#94a3b8;text-align:center">
+                <span id="heroBgEmoji">🖼️<br>sem imagem</span>
+                <img id="heroBgPreviewImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
+              </div>
+              <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:.5rem">
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:.35rem">
+                  📁 Enviar imagem
+                  <input type="file" id="heroBgFileInput" accept="image/*" style="display:none">
+                </label>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <input type="text" id="heroBgUrl" class="form-control" placeholder="ou cole uma URL de imagem">
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="removeHeroBg()" style="color:#ef4444;width:fit-content">✕ Remover fundo</button>
+                <div class="form-hint">Resolução recomendada: 1920×600 px. Use Cloudinary para melhor desempenho.</div>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="cfgNome">Nome do Condomínio</label>
             <input type="text" id="cfgNome" class="form-control" placeholder="ex: Residencial San Francisco">
@@ -237,6 +264,58 @@
   const edFrase = new RichEditor('cfgFrase');
   edFrase.editable.setAttribute('data-placeholder', 'Texto exibido na página inicial...');
 
+  /* ── Hero Background ────────────────────────────────── */
+  let currentHeroBg = DB.get('config').heroBg || '';
+
+  function showHeroBgPreview(src) {
+    const img   = document.getElementById('heroBgPreviewImg');
+    const emoji = document.getElementById('heroBgEmoji');
+    if (src) {
+      img.src             = src;
+      img.style.display   = 'block';
+      emoji.style.display = 'none';
+    } else {
+      img.style.display   = 'none';
+      emoji.style.display = 'block';
+    }
+  }
+
+  document.getElementById('heroBgFileInput').addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    /* Tenta Cloudinary primeiro */
+    const cloudUrl = await uploadToCloudinary(file);
+    if (cloudUrl) {
+      currentHeroBg = cloudUrl;
+      showHeroBgPreview(currentHeroBg);
+      document.getElementById('heroBgUrl').value = cloudUrl;
+      toast('☁️ Imagem enviada para o Cloudinary!');
+    } else {
+      /* Fallback base64 */
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentHeroBg = e.target.result;
+        showHeroBgPreview(currentHeroBg);
+        document.getElementById('heroBgUrl').value = '';
+        toast('Imagem carregada localmente. Configure o Cloudinary para compartilhar.', 'info');
+      };
+      reader.readAsDataURL(file);
+    }
+    this.value = '';
+  });
+
+  document.getElementById('heroBgUrl').addEventListener('change', function() {
+    const v = this.value.trim();
+    if (v) { currentHeroBg = v; showHeroBgPreview(v); }
+  });
+
+  function removeHeroBg() {
+    currentHeroBg = '';
+    showHeroBgPreview('');
+    document.getElementById('heroBgUrl').value = '';
+    document.getElementById('heroBgFileInput').value = '';
+  }
+
   /* ── Logo ───────────────────────────────────────────── */
   let currentLogo = DB.get('config').logo || '';
 
@@ -281,7 +360,8 @@
   /* Preenche o formulário com os dados atuais */
   function loadCfg() {
     const cfg = DB.get('config');
-    currentLogo = cfg.logo || '';
+    currentLogo  = cfg.logo   || '';
+    currentHeroBg = cfg.heroBg || '';
     document.getElementById('sidebarNome').textContent = cfg.nome;
     document.getElementById('cfgNome').value     = cfg.nome;
     edFrase.setValue(cfg.frase);
@@ -292,6 +372,9 @@
     document.getElementById('recoverHint').textContent = getRecover();
     document.getElementById('secRecover').value  = getRecover();
     showLogoPreview(currentLogo);
+    showHeroBgPreview(currentHeroBg);
+    if (currentHeroBg && !currentHeroBg.startsWith('data:'))
+      document.getElementById('heroBgUrl').value = currentHeroBg;
   }
 
   function saveCfg() {
@@ -304,7 +387,8 @@
       sindico:         document.getElementById('cfgSindico').value.trim(),
       administradora:  document.getElementById('cfgAdmin').value.trim(),
       whatsapp:        document.getElementById('cfgWhats').value.trim(),
-      logo:            currentLogo
+      logo:            currentLogo,
+      heroBg:          currentHeroBg
     });
     document.getElementById('sidebarNome').textContent = nome;
     toast('Configurações salvas! As páginas públicas já refletem as mudanças.');

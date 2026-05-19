@@ -94,6 +94,17 @@
   document.getElementById('heroTitle').innerHTML   =
     `Condomínio Residencial<br><span class="hero-title-accent">${cfg.nome}</span>`;
 
+  /* Aplica background personalizado no hero */
+  if (cfg.heroBg) {
+    const hero = document.querySelector('.hero-section');
+    hero.style.backgroundImage =
+      `linear-gradient(rgba(10,22,40,.68) 0%, rgba(10,22,40,.62) 100%), url('${cfg.heroBg}')`;
+    hero.style.backgroundSize     = 'cover';
+    hero.style.backgroundPosition = 'center';
+    hero.style.backgroundRepeat   = 'no-repeat';
+    hero.classList.add('custom-hero-bg');
+  }
+
   /* Renderiza os 3 últimos avisos na home */
   const avisos  = DB.get('avisos').slice(0, 3);
   const preview = document.getElementById('avisosPreview');

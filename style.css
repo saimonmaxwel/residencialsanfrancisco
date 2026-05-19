@@ -314,6 +314,9 @@ main > .section { flex: 1; }
     overflow: hidden;
 }
 
+/* Sem watermark quando há imagem de fundo personalizada */
+.hero-section.custom-hero-bg::before { display: none; }
+
 /* Watermark da logo — fundo preto some com screen, logo azul brilha */
 .hero-section::before {
     content: '';
