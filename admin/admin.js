@@ -209,37 +209,35 @@ const DB = {
   }
 }
 
-/* ── Upload de imagem para o GitHub ───────────────────────────
-   Requer configuração em Configurações → GitHub.
-   Retorna a URL pública (raw.githubusercontent.com) ou null.
+/* ── Upload de imagem para o Cloudinary ───────────────────────
+   Requer configuração em Configurações → Cloudinary.
+   Usa upload não-assinado (unsigned preset) — sem backend.
+   Retorna a URL pública (res.cloudinary.com) ou null.
    ──────────────────────────────────────────────────────────── */
-async function uploadToGitHub(file, base64Data) {
+async function uploadToCloudinary(file) {
   let cfg;
-  try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) { return null; }
-  if (!cfg.token || !cfg.owner || !cfg.repo) return null;
+  try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) { return null; }
+  if (!cfg.cloudName || !cfg.uploadPreset) return null;
 
-  const ext      = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
-  const path     = `img/uploads/${filename}`;
-  const branch   = cfg.branch || 'main';
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', cfg.uploadPreset);
+  formData.append('folder', 'residencial');
 
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`,
-      {
-        method: 'PUT',
-        headers: { 'Authorization': `token ${cfg.token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: `Galeria: upload ${filename}`, branch, content: base64Data })
-      }
+      `https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`,
+      { method: 'POST', body: formData }
     );
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      console.warn('GitHub upload erro:', res.status, err.message || '');
+      console.warn('Cloudinary upload erro:', res.status, err.error?.message || '');
       return null;
     }
-    return `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${branch}/${path}`;
+    const json = await res.json();
+    return json.secure_url;
   } catch(e) {
-    console.warn('GitHub upload falhou:', e);
+    console.warn('Cloudinary upload falhou:', e);
     return null;
   }
 }

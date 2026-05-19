@@ -329,26 +329,24 @@
       document.getElementById('uploadPreview').classList.add('show');
       document.getElementById('fSrc').value = '';
 
-      /* Tenta upload para o GitHub */
-      const githubUrl = await uploadToGitHub(file, base64Data);
+      /* Tenta upload para o Cloudinary */
+      const cloudUrl = await uploadToCloudinary(file);
 
-      if (githubUrl) {
-        document.getElementById('fSrc').value   = githubUrl;
-        document.getElementById('previewImg').src = githubUrl;
+      if (cloudUrl) {
+        document.getElementById('fSrc').value    = cloudUrl;
+        document.getElementById('previewImg').src = cloudUrl;
         warnEl.style.cssText = 'display:;background:#dcfce7;color:#166534';
-        warnEl.textContent   = '☁️ Enviada para o GitHub! Visível em todos os dispositivos.';
+        warnEl.textContent   = '☁️ Enviada para o Cloudinary! Visível em todos os dispositivos.';
       } else {
-        /* Fallback: armazena base64 localmente */
+        /* Fallback: base64 local */
         document.getElementById('fSrc').value = dataUrl;
         let cfg = {};
-        try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) {}
-        const ghConfigured = cfg.token && cfg.owner && cfg.repo;
+        try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
+        const configured = cfg.cloudName && cfg.uploadPreset;
         warnEl.style.cssText = 'display:;background:#fef3c7;color:#b45309';
-        if (!ghConfigured) {
-          warnEl.textContent = '⚠️ GitHub não configurado — salvo localmente. Outros dispositivos não verão esta foto. Configure em ⚙️ Configurações.';
-        } else {
-          warnEl.textContent = `⚠️ Upload para o GitHub falhou — salvo localmente (${sizeMB} MB). Verifique o token e repositório em ⚙️ Configurações.`;
-        }
+        warnEl.textContent = configured
+          ? `⚠️ Upload para o Cloudinary falhou — salvo localmente. Verifique as configurações em ⚙️ Configurações.`
+          : '⚠️ Cloudinary não configurado — salvo localmente. Outros dispositivos não verão esta foto. Configure em ⚙️ Configurações.';
       }
     };
     reader.readAsDataURL(file);
@@ -381,7 +379,7 @@
     grid.innerHTML = fotos.map(f => {
       const src   = adminSrc(f.src);
       const isB64 = f.src.startsWith('data:');
-      const isGH  = f.src.startsWith('https://raw.githubusercontent.com');
+      const isGH  = f.src.startsWith('https://res.cloudinary.com');
       return `
         <div class="gallery-admin-item">
           <img class="gallery-admin-img" src="${src}" alt="${f.alt}"

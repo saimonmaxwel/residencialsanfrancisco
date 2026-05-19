@@ -165,48 +165,38 @@
         </div>
       </div>
 
-      <!-- ── INTEGRAÇÃO GITHUB ── -->
+      <!-- ── INTEGRAÇÃO CLOUDINARY ── -->
       <div class="admin-card">
         <div class="admin-card-header">
-          <span class="admin-card-title">🐙 Integração com GitHub</span>
+          <span class="admin-card-title">☁️ Integração com Cloudinary</span>
         </div>
         <div class="admin-card-body">
           <p style="font-size:.875rem;color:#64748b;margin-bottom:1rem">
-            Configure o repositório do GitHub para que as imagens enviadas na
-            <strong>Galeria</strong> sejam armazenadas diretamente no repositório e
-            fiquem visíveis em todos os dispositivos via GitHub Pages.
+            Configure o Cloudinary para que as imagens da <strong>Galeria</strong>
+            sejam hospedadas na nuvem e fiquem visíveis em todos os dispositivos.
+            O plano gratuito suporta até 25 GB — mais do que suficiente.
           </p>
-          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#1e40af;margin-bottom:1.25rem">
-            📋 <strong>Como gerar o Token:</strong> GitHub → Settings → Developer settings →
-            Personal access tokens → Tokens (classic) → Generate new token →
-            marque <code>repo</code> → copie e cole abaixo.
+          <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#6b21a8;margin-bottom:1.25rem;line-height:1.6">
+            📋 <strong>Como configurar:</strong><br>
+            1. Acesse <strong>cloudinary.com</strong> → crie uma conta gratuita<br>
+            2. No Dashboard, copie o <strong>Cloud name</strong><br>
+            3. Vá em Settings → Upload → <strong>Add upload preset</strong> →
+               defina como <strong>Unsigned</strong> → salve e copie o nome do preset
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="ghOwner">Usuário / Organização</label>
-              <input type="text" id="ghOwner" class="form-control" placeholder="ex: saimonmaxwel">
+              <label for="cldName">Cloud Name</label>
+              <input type="text" id="cldName" class="form-control" placeholder="ex: meu-condominio">
             </div>
             <div class="form-group">
-              <label for="ghRepo">Nome do Repositório</label>
-              <input type="text" id="ghRepo" class="form-control" placeholder="ex: residencial">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="ghBranch">Branch</label>
-              <input type="text" id="ghBranch" class="form-control" placeholder="main" value="main">
-            </div>
-            <div class="form-group">
-              <label for="ghToken">Personal Access Token (PAT)</label>
-              <input type="password" id="ghToken" class="form-control"
-                     placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-              <div class="form-hint">⚠️ Guardado apenas neste navegador. Não é exportado.</div>
+              <label for="cldPreset">Upload Preset (unsigned)</label>
+              <input type="text" id="cldPreset" class="form-control" placeholder="ex: residencial_unsigned">
             </div>
           </div>
           <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
-            <button class="btn btn-primary" onclick="saveGithub()">💾 Salvar Configuração GitHub</button>
-            <button class="btn btn-ghost btn-sm" onclick="testGithub()">🔍 Testar conexão</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearGithub()" style="color:#ef4444">✕ Remover</button>
+            <button class="btn btn-primary" onclick="saveCloudinary()">💾 Salvar Configuração</button>
+            <button class="btn btn-ghost btn-sm" onclick="testCloudinary()">🔍 Testar</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearCloudinary()" style="color:#ef4444">✕ Remover</button>
           </div>
         </div>
       </div>
@@ -431,61 +421,58 @@ const DB = {
     }
   }
 
-  /* ── GitHub ─────────────────────────────────────────────── */
-  function loadGithub() {
+  /* ── Cloudinary ─────────────────────────────────────────── */
+  function loadCloudinary() {
     let cfg = {};
-    try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) {}
-    document.getElementById('ghOwner').value  = cfg.owner  || '';
-    document.getElementById('ghRepo').value   = cfg.repo   || '';
-    document.getElementById('ghBranch').value = cfg.branch || 'main';
-    document.getElementById('ghToken').value  = cfg.token  || '';
+    try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
+    document.getElementById('cldName').value   = cfg.cloudName    || '';
+    document.getElementById('cldPreset').value = cfg.uploadPreset || '';
   }
 
-  function saveGithub() {
-    const owner  = document.getElementById('ghOwner').value.trim();
-    const repo   = document.getElementById('ghRepo').value.trim();
-    const branch = document.getElementById('ghBranch').value.trim() || 'main';
-    const token  = document.getElementById('ghToken').value.trim();
-    if (!owner || !repo || !token) {
-      toast('Preencha usuário, repositório e token.', 'error'); return;
+  function saveCloudinary() {
+    const cloudName    = document.getElementById('cldName').value.trim();
+    const uploadPreset = document.getElementById('cldPreset').value.trim();
+    if (!cloudName || !uploadPreset) {
+      toast('Preencha o Cloud Name e o Upload Preset.', 'error'); return;
     }
-    localStorage.setItem('condo_github', JSON.stringify({ owner, repo, branch, token }));
-    toast('Configuração GitHub salva! Uploads da galeria agora irão para o repositório.');
+    localStorage.setItem('condo_cloudinary', JSON.stringify({ cloudName, uploadPreset }));
+    toast('Configuração Cloudinary salva! Próximos uploads irão para a nuvem.');
   }
 
-  async function testGithub() {
+  async function testCloudinary() {
     let cfg = {};
-    try { cfg = JSON.parse(localStorage.getItem('condo_github') || '{}'); } catch(_) {}
-    if (!cfg.token || !cfg.owner || !cfg.repo) {
+    try { cfg = JSON.parse(localStorage.getItem('condo_cloudinary') || '{}'); } catch(_) {}
+    if (!cfg.cloudName || !cfg.uploadPreset) {
       toast('Salve as configurações antes de testar.', 'error'); return;
     }
-    toast('Testando conexão…', 'info');
+    /* Testa com uma imagem mínima de 1x1 px em base64 */
+    toast('Testando conexão com Cloudinary…', 'info');
+    const px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const fd = new FormData();
+    fd.append('file', px);
+    fd.append('upload_preset', cfg.uploadPreset);
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`,
-        { headers: { 'Authorization': `token ${cfg.token}` } }
-      );
-      if (res.ok) {
-        const d = await res.json();
-        toast(`✅ Conexão OK! Repositório: ${d.full_name}`);
+      const res  = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`, { method: 'POST', body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.secure_url) {
+        toast(`✅ Cloudinary OK! Cloud: ${cfg.cloudName}`);
       } else {
-        const d = await res.json().catch(() => ({}));
-        toast(`Erro ${res.status}: ${d.message || 'Token inválido ou repositório não encontrado.'}`, 'error');
+        toast(`Erro: ${json.error?.message || 'Preset ou Cloud Name inválido.'}`, 'error');
       }
     } catch(e) {
-      toast('Falha de rede ao conectar com o GitHub.', 'error');
+      toast('Falha de rede ao conectar com o Cloudinary.', 'error');
     }
   }
 
-  function clearGithub() {
-    if (!confirm('Remover a configuração do GitHub?')) return;
-    localStorage.removeItem('condo_github');
-    loadGithub();
-    toast('Configuração GitHub removida.', 'info');
+  function clearCloudinary() {
+    if (!confirm('Remover a configuração do Cloudinary?')) return;
+    localStorage.removeItem('condo_cloudinary');
+    loadCloudinary();
+    toast('Configuração Cloudinary removida.', 'info');
   }
 
   loadCfg();
-  loadGithub();
+  loadCloudinary();
 </script>
 </body>
 </html>
